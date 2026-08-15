@@ -38,7 +38,7 @@ export default function SwipeFeedScreen() {
 
   if (loading && page === 1) {
     return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );

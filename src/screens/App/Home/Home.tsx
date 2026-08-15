@@ -114,7 +114,7 @@ useEffect(() => {
     if(loading && page === 1 )
     {
         return (
-            <View style={{padding:16}}>
+            <View style={{flex:1,justifyContent: "center", alignItems: "center"}}>
                 <ActivityIndicator size = "large" />
                 {/* {[1,2,3,4,5].map((_, i)=>(
                     <SkeletonCard key = {i}/>

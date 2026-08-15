@@ -81,7 +81,7 @@ export default function CategoryFeedScreen({ route }) {
       />
 
       {loading && page === 1 ? (
-        <View style={{ padding: 16 }}>
+        <View style={{justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" />
         </View>
       ) : error && articles.length === 0 ? (
