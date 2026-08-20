@@ -6,7 +6,7 @@ import Input from "../../../components/common/Input";
 import { loginApi } from "../../../api/auth";
 import { useAuthStore } from "../../../store/AuthStore";
 import Toast from "react-native-toast-message";
-import RegisterScreen from "./Register";
+import RegisterScreen from "./RegisterScreen";
 
 const schema = yup.object({
   email: yup.string().email().required(),

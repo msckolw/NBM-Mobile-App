@@ -3,8 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from '../../features/news/screens/Home';
 import Profile from '../../features/profile/screens/ProfileScreen'
-import Search from '../../features/search/screens/Search'
-import Bookmarks from '../../features/bookmarks/screens/Bookmarks'
+import Search from '../../features/search/screens/SearchScreen'
+import Bookmarks from '../../features/bookmarks/screens/BookmarksScreen'
 import Ionicons from "react-native-vector-icons/Ionicons";
 import SwipeFeedScreen from '../../features/news/screens/swipefeedScreen';
 import ReadMore from '../../features/readmore/screens/ReadMoreScreen';
