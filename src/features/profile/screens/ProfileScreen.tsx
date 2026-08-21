@@ -6,8 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 
 const Profile = () => {
   const logout = () => {
-    
-    useAuthStore(s => s.logout);
+    console.log("logout called")
+    // useAuthStore(s => s.logout);
   }
  
   const navigation = useNavigation()

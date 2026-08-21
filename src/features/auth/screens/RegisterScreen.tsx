@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Input from "../../../components/common/Input";
-import { RegisterApi } from "@api/auth";
+import {registerApi} from "../../../api/auth";
 import { useAuthStore } from "../../../store/AuthStore";
 
 
@@ -24,15 +24,19 @@ export default function RegisterScreen({ navigation }) {
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = async (data) => {
-    try {
-      const res = await RegisterApi(data);
-      // Backend should return { user, token }
-      setAuth(res.user, res.token);
-    } catch (error) {
-      console.log("Register error:", error);
-    }
-  };
+const onSubmit = async (data) => {
+  try {
+    console.log("Register data:", data);
+
+    const res = await registerApi(data);
+
+    console.log("Register response:", res.data);
+
+    setAuth(res.data.user, res.data.token);
+  } catch (error) {
+    console.log("Register error:", error);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -92,6 +96,6 @@ export default function RegisterScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center" },
-  title: { fontSize: 28, marginBottom: 20, fontWeight: "600" },
+  title: { fontSize: 28, marginBottom: 20, fontWeight: "600",color:"#000" },
   link: { textAlign: "center", marginTop: 16, color: "blue" },
 });

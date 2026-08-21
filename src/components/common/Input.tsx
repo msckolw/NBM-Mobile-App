@@ -17,13 +17,14 @@ export default function Input({ label, error, ...props }) {
 }
 
 const styles = StyleSheet.create({
-  label: { fontSize: 14, marginBottom: 6, color: "#444" },
+  label: { fontSize: 14, marginBottom: 6, color: "#000" },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 10,
     padding: 12,
     fontSize: 16,
+    color:"#000",
   },
   errorBorder: { borderColor: "red" },
   errorText: { color: "red", marginTop: 4, fontSize: 12 },

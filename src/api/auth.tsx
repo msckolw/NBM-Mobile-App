@@ -3,16 +3,17 @@ import api from "./client";
 
 
 export const loginApi = async(email:string, password:string)=>{
-    const res = api.post("/auth/login", {email, password})
+    const res = await api.post("/auth/login", {email, password})
     console.log("LoginRes:", res)
     return res
 }
 
-export const RegisterApi = async(payload:{
-    name:string,
-    email:string,
-    password:string
-})=>{
-    const res = api.post('',{payload})
-    return res
-}
+export const registerApi = async (payload: {
+  name: string;
+  email: string;
+  password: string;
+}) => {
+  const res = await api.post("/register", payload);
+
+  return res;
+};

@@ -86,6 +86,6 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center" },
-  title: { fontSize: 28, marginBottom: 20, fontWeight: "600" },
+  title: { fontSize: 28, marginBottom: 20, fontWeight: "600",color:"#000" },
   link: { textAlign: "center", marginTop: 16, color: "blue" },
 });

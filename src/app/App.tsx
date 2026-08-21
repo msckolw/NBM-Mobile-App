@@ -5,6 +5,8 @@ import RootNavigator from './navigation/RootNavigator';
 import Toast from 'react-native-toast-message';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import RNBootSplash from "react-native-bootsplash";
+import { Provider } from "react-redux";
+import { store } from "../store";
 // TEMPORARILY COMMENTED OUT FOR BUILD - WILL RESTORE LATER
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
 // import { ENV } from "./src/config/env"
@@ -39,6 +41,7 @@ function App() {
   
 
   return (
+    <Provider store={store}>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <ErrorBoundary>
@@ -46,6 +49,7 @@ function App() {
         <Toast/>
       </ErrorBoundary>
     </GestureHandlerRootView>
+    </Provider>
   );
 }
 
