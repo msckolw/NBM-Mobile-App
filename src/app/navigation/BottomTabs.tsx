@@ -8,12 +8,17 @@ import Bookmarks from '../../features/bookmarks/screens/BookmarksScreen'
 import Ionicons from "react-native-vector-icons/Ionicons";
 import SwipeFeedScreen from '../../features/news/screens/swipefeedScreen';
 import ReadMore from '../../features/readmore/screens/ReadMoreScreen';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+
 
 
 const Tab = createBottomTabNavigator();
 const PlaceholderScreen = () => null;
 
 export default function AppScreens() {
+const insets = useSafeAreaInsets();
+
     return (
         <Tab.Navigator
         screenOptions={({ route }) => ({
@@ -22,8 +27,8 @@ export default function AppScreens() {
           tabBarActiveTintColor: "#007AFF",
           tabBarInactiveTintColor: "#555",
           tabBarStyle: {
-            height: 60,
-            paddingBottom: 8,
+            height: 60 + insets.bottom,
+            paddingBottom: insets.bottom + 8,
             paddingTop: 8,
           },
   
