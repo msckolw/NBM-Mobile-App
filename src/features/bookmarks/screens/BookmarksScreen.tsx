@@ -2,12 +2,37 @@ import { FlatList, View, Text, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useBookmarkStore } from "../../../store/BookmarkStore";
 import NewsCard from "../../news/components/NewsCard";
+import { SafeAreaView } from "react-native-safe-area-context";
+import TopicTabs from "../../../features/news/components/TopicTabs"
+import { useThemeStore } from '../../../store/ThemeStore';
 
 export default function BookmarksScreen() {
   const items = useBookmarkStore((s) => s.items);
   const navigation = useNavigation();
+  const theme = useThemeStore(s => s.theme);
+
 
   return (
+    <SafeAreaView
+    edges={['top']}
+    style={{
+      flex: 1,
+      backgroundColor: theme === 'light' ? '#fff' : '#000',
+    }}
+  >
+      {/* Header must NOT use flex */}
+      {/* <TopicTabs
+        // selected={selectedTopic}
+        // onPress={topic => {
+        //   ReactNativeHapticFeedback.trigger('impactLight');
+        //   setSelectedTopic(topic);
+        //   if (topic === 'All') {
+        //     return;
+        //   }
+        //   navigation.navigate('CategoryFeed', { topic });
+        // }}
+        onPress = {()=>console.log("dawd")}
+      /> */}
     <FlatList
       data={items}
       keyExtractor={(item) => item._id}
@@ -31,6 +56,7 @@ export default function BookmarksScreen() {
         </View>
       }
     />
+    </SafeAreaView>
   );
 }
 
