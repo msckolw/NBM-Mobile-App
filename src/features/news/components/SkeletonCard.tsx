@@ -1,5 +1,4 @@
 import SkeletonPlaceholder from "react-native-skeleton-placeholder";
-import { View } from "react-native";
 
 export default function SkeletonCard() {
   return (

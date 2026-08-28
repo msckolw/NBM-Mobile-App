@@ -15,6 +15,7 @@ import RootNavigator from './navigation/RootNavigator';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import {store} from '../store';
 import {useThemeStore} from '../store/ThemeStore';
+import { configureGoogleSignIn } from "../services/auth/googleAuth";
 
 if (__DEV__) {
   LogBox.ignoreAllLogs(false);
@@ -26,6 +27,8 @@ function App() {
   const isDarkMode = theme === 'dark';
 
   useEffect(() => {
+    configureGoogleSignIn();
+  
     const init = async () => {
       try {
         await RNBootSplash.hide({fade: true});
@@ -33,7 +36,7 @@ function App() {
         console.error('Error hiding boot splash:', error);
       }
     };
-
+  
     init();
   }, []);
 

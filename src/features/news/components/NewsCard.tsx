@@ -10,6 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useBookmarkStore } from '../../../store/BookmarkStore';
 import { timeAgo } from '../../../utils/timeAgo';
+import { googleLogin } from '../../../services/auth/googleAuth';
 
 type ArticleLike = {
   _id: string;
@@ -90,6 +91,7 @@ export default function NewsCard({
       console.log('Share failed:', err);
     }
   };
+  
 
   return (
     <View
@@ -128,7 +130,7 @@ export default function NewsCard({
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => bookmarkArticle && toggleBookmark(bookmarkArticle)}
+            onPress={ googleLogin}
           >
             <Icon
               name={bookmarked ? 'bookmark' : 'bookmark-outline'}
