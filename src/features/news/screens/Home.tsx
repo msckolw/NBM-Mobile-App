@@ -22,13 +22,12 @@ const Home = () => {
     onRefresh,
     loadMore,
     page,
-    loadingMore
+    // loadingMore
   } = useNews();
   const toggleBookmark = useBookmarkStore(s => s.toggleBookmark);
   const theme = useThemeStore((s: any) => s.theme);
 
   const [selectedTopic, setSelectedTopic] = useState('All');
-
   console.log('NewsFromnbackend', loading, articles, totalPages, error);
   console.log('themetoggle:', theme);
 
@@ -89,16 +88,22 @@ const Home = () => {
     >
       {/* Header must NOT use flex */}
       <TopicTabs
-        selected={selectedTopic}
-        onPress={topic => {
-          ReactNativeHapticFeedback.trigger('impactLight');
-          setSelectedTopic(topic);
-          if (topic === 'All') {
-            return;
-          }
-          navigation.navigate('CategoryFeed', { topic });
-        }}
-      />
+  selected={selectedTopic}
+  theme={theme}
+  onPress={topic => {
+    ReactNativeHapticFeedback.trigger('impactLight');
+
+    setSelectedTopic(topic);
+
+    if (topic === 'All') {
+      return;
+    }
+
+    navigation.navigate('CategoryFeed', { topic });
+  }}
+/>
+
+
 
       <FlatList
         showsVerticalScrollIndicator={false}

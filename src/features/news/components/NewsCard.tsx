@@ -11,6 +11,11 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useBookmarkStore } from '../../../store/BookmarkStore';
 import { timeAgo } from '../../../utils/timeAgo';
 import { googleLogin } from '../../../services/auth/googleAuth';
+import useAuthStore from '../../../store/AuthStore';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '../../../store';
+import { setAuth } from '../../auth/store/authslice';
+import { googleSignIn } from '../../../api/auth';
 
 type ArticleLike = {
   _id: string;
@@ -49,9 +54,15 @@ export default function NewsCard({
   onSecondaryPress,
   origin,
 }: NewsCardProps) {
-  console.log('ArticleGetting:', article?._id);
-  // if (!article || !article._id) return null;
+  const dispatch = useDispatch<AppDispatch>();
   const { toggleBookmark, isBookmarked } = useBookmarkStore();
+  // const { user, token, setAuth } = useAuthStore();
+
+const { user, token } = useSelector(
+  (state: RootState) => state.auth
+);
+
+  const isAuthenticated = !!user && !!token;
   const isReadMore = origin === 'ReadMore';
   const useThisArticle: ArticleLike | undefined = isReadMore
     ? article
@@ -89,6 +100,60 @@ export default function NewsCard({
       });
     } catch (err) {
       console.log('Share failed:', err);
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!bookmarkArticle) {
+      return;
+    }
+  
+    // Already logged in → bookmark directly
+    if (isAuthenticated) {
+      toggleBookmark(bookmarkArticle);
+      return;
+    }
+  
+    // Not logged in → Google authentication
+    try {
+      const googleResult = await googleLogin();
+  
+      const googleUser = googleResult?.user;
+  
+      if (!googleUser?.email) {
+        throw new Error('Google user email not found');
+      }
+  
+      // Existing backend expects email + name
+      const response = await googleSignIn({
+        email: googleUser.email,
+        name: googleUser.name ?? '',
+      });
+  
+      console.log('Backend Google login:', response);
+  
+      if (!response?.success) {
+        throw new Error('Backend Google login failed');
+      }
+  
+      /*
+       * Current backend puts the JWT in an HTTP-only cookie.
+       *
+       * It does NOT return the actual JWT in response.token.
+       * So for now we need to be careful about what we store in Redux.
+       */
+      
+      dispatch(
+        setAuth({
+          user: response.user,
+          token: response.token,
+        }),
+      );
+  
+      // Bookmark after successful authentication
+      toggleBookmark(bookmarkArticle);
+    } catch (error) {
+      console.error('Bookmark authentication failed:', error);
     }
   };
   
@@ -130,7 +195,8 @@ export default function NewsCard({
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={ googleLogin}
+          onPress= {handleBookmark}
+            // onPress={ googleLogin}
           >
             <Icon
               name={bookmarked ? 'bookmark' : 'bookmark-outline'}
