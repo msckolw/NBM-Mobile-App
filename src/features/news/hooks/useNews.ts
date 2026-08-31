@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getNews } from '../../../api/news';
+import { recordError } from '../../../services/monitoring/crashlytics';
 
 const useNews = () => {
   const [articles, setArticles] = useState<any[]>([]);
@@ -32,6 +33,11 @@ const useNews = () => {
     } catch (error) {
       console.log('Error fetching news:', error);
       setError('Failed to load news');
+      recordError(
+        error instanceof Error
+          ? error
+          : new Error('Unknown article fetch error'),
+        'Failed to fetch articles',)
     } finally {
       setLoading(false);
     }

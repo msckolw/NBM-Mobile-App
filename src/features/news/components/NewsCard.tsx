@@ -19,6 +19,7 @@ import { setAuth } from '../../auth/store/authslice';
 import { googleSignIn } from '../../../api/auth';
 import { googleLogin } from '../../../services/auth/googleAuth';
 import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
+import { log, setUserId } from '../../../services/monitoring/crashlytics';
 
 type ArticleLike = {
   _id: string;
@@ -122,13 +123,14 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   };
 
   const handleGoogleLogin = useCallback(async () => {
+    log('Google login started');
     try {
       const result = await googleLogin();
   
       if (!result?.user?.email) {
         return;
       }
-  
+      log('Google authentication successful');
       const response = await googleSignIn({
         email: result.user.email,
         name: result.user.name ?? '',
@@ -137,13 +139,14 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
       console.log('Backend Google login:', response);
   
       if (response?.success) {
+        log('Backend authentication successful');
         dispatch(
           setAuth({
             token: response.token,
             user: response.user,
           }),
         );
-  
+        setUserId(response.user.id);
         setShowAuthModal(false);
   
         if (pendingBookmark) {
@@ -157,7 +160,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
             );
           }, 300);
         }
-  
+        log('User session established');
         console.log('Authentication successful');
       }
     } catch (error) {

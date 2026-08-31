@@ -16,6 +16,11 @@ import ErrorBoundary from '../components/common/ErrorBoundary';
 import {store} from '../store';
 import {useThemeStore} from '../store/ThemeStore';
 import { configureGoogleSignIn } from "../services/auth/googleAuth";
+import {
+  getCrashlytics,
+  recordError,
+  crash
+} from '@react-native-firebase/crashlytics';
 
 if (__DEV__) {
   LogBox.ignoreAllLogs(false);
@@ -26,6 +31,7 @@ function App() {
   const theme = useThemeStore(state => state.theme);
   const isDarkMode = theme === 'dark';
 
+  
   useEffect(() => {
     configureGoogleSignIn();
   
@@ -39,6 +45,20 @@ function App() {
   
     init();
   }, []);
+
+
+
+  // useEffect(() => {
+  //   const crashlytics = getCrashlytics();
+  
+  //   recordError(
+  //     crashlytics,
+  //     new Error('NoBiasNews Crashlytics test'),
+  //   );
+    
+  // }, []);
+
+  
 
   return (
     <Provider store={store}>
