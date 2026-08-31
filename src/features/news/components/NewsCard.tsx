@@ -5,17 +5,20 @@ import {
   StyleSheet,
   TouchableOpacity,
   Share,
-  Button,
+  Alert,
 } from 'react-native';
+
+import { useCallback, useState } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSelector, useDispatch } from 'react-redux';
+
 import { useBookmarkStore } from '../../../store/BookmarkStore';
 import { timeAgo } from '../../../utils/timeAgo';
-import { googleLogin } from '../../../services/auth/googleAuth';
-import useAuthStore from '../../../store/AuthStore';
-import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../../../store';
 import { setAuth } from '../../auth/store/authslice';
 import { googleSignIn } from '../../../api/auth';
+import { googleLogin } from '../../../services/auth/googleAuth';
+import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
 
 type ArticleLike = {
   _id: string;
@@ -56,22 +59,23 @@ export default function NewsCard({
 }: NewsCardProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { toggleBookmark, isBookmarked } = useBookmarkStore();
+  const { user, token } = useSelector((state: RootState) => state.auth);
   // const { user, token, setAuth } = useAuthStore();
+  const [pendingBookmark, setPendingBookmark] =
+  useState<BookmarkArticle | null>(null);
 
-const { user, token } = useSelector(
-  (state: RootState) => state.auth
-);
+const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const isAuthenticated = !!user && !!token;
+
+  const isAuthenticated = !!token;
   const isReadMore = origin === 'ReadMore';
   const useThisArticle: ArticleLike | undefined = isReadMore
     ? article
     : article?.item ?? article;
   const bookmarked = !!useThisArticle?._id && isBookmarked(useThisArticle._id);
-  // const isBookmarked = useBookmarkStore((s) => s.isBookmarked(article?.item?._id));
-  // const origin = props?.route?.params || ''
-  console.log('Origin:', origin);
-  console.log('useThisArticle', isReadMore);
+
+
 
   const bookmarkArticle: BookmarkArticle | null = useThisArticle?._id
     ? {
@@ -87,7 +91,7 @@ const { user, token } = useSelector(
   if (!useThisArticle?._id) {
     return null;
   }
-
+  console.log('Bookmark pressed:', useThisArticle?._id);
   const handleShare = async () => {
     try {
       await Share.share({
@@ -103,59 +107,63 @@ const { user, token } = useSelector(
     }
   };
 
-  const handleBookmark = async () => {
+  const handleBookmark = () => {
     if (!bookmarkArticle) {
       return;
     }
-  
-    // Already logged in → bookmark directly
-    if (isAuthenticated) {
-      toggleBookmark(bookmarkArticle);
+
+    if (!isAuthenticated) {
+      setPendingBookmark(bookmarkArticle);
+      setShowAuthModal(true);
       return;
     }
-  
-    // Not logged in → Google authentication
+
+    toggleBookmark(bookmarkArticle);
+  };
+
+  const handleGoogleLogin = useCallback(async () => {
     try {
-      const googleResult = await googleLogin();
+      const result = await googleLogin();
   
-      const googleUser = googleResult?.user;
-  
-      if (!googleUser?.email) {
-        throw new Error('Google user email not found');
+      if (!result?.user?.email) {
+        return;
       }
   
-      // Existing backend expects email + name
       const response = await googleSignIn({
-        email: googleUser.email,
-        name: googleUser.name ?? '',
+        email: result.user.email,
+        name: result.user.name ?? '',
       });
   
       console.log('Backend Google login:', response);
   
-      if (!response?.success) {
-        throw new Error('Backend Google login failed');
+      if (response?.success) {
+        dispatch(
+          setAuth({
+            token: response.token,
+            user: response.user,
+          }),
+        );
+  
+        setShowAuthModal(false);
+  
+        if (pendingBookmark) {
+          toggleBookmark(pendingBookmark);
+          setPendingBookmark(null);
+  
+          setTimeout(() => {
+            Alert.alert(
+              'Login successful',
+              'Your article has been saved to bookmarks.',
+            );
+          }, 300);
+        }
+  
+        console.log('Authentication successful');
       }
-  
-      /*
-       * Current backend puts the JWT in an HTTP-only cookie.
-       *
-       * It does NOT return the actual JWT in response.token.
-       * So for now we need to be careful about what we store in Redux.
-       */
-      
-      dispatch(
-        setAuth({
-          user: response.user,
-          token: response.token,
-        }),
-      );
-  
-      // Bookmark after successful authentication
-      toggleBookmark(bookmarkArticle);
     } catch (error) {
-      console.error('Bookmark authentication failed:', error);
+      console.error('Google login failed:', error);
     }
-  };
+  }, [dispatch, pendingBookmark, toggleBookmark]);
   
 
   return (
@@ -195,7 +203,7 @@ const { user, token } = useSelector(
           </TouchableOpacity>
 
           <TouchableOpacity
-          onPress= {handleBookmark}
+            onPress={handleBookmark}
             // onPress={ googleLogin}
           >
             <Icon
@@ -224,6 +232,12 @@ const { user, token } = useSelector(
           </TouchableOpacity>
         )}
       </View>
+
+      <AuthRequiredModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onGoogleLogin={handleGoogleLogin}
+      />
     </View>
   );
 }
