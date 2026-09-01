@@ -1,25 +1,42 @@
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import useAuthStore from "../../store/AuthStore";
 import AuthStack from "./AuthStack";
 import AppStack from "./AppStack";
    import { useAppSelector } from "../../store/hooks";
+   import { useRef } from 'react';
+import { logEvent } from '../../services/monitoring/analytics';
 
 
-export default function RootNavigator()
-{
-    // const token = true;
-    // const token = useAuthStore((s)=>s.token)
+export const navigationRef = createNavigationContainerRef();
 
- const auth = useAppSelector((state) => state.auth);
-console.log("RootNavigatorAuth:", auth);
+export default function RootNavigator() {
+    
+    const auth = useAppSelector((state) => state.auth);
+    const token = useAppSelector((state) => state.auth.token);
+    const routeNameRef = useRef<string | undefined>(undefined);
 
-const token = useAppSelector((state) => state.auth.token);
-console.log("RootNavigator token:", token);
+  return (
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        routeNameRef.current =
+          navigationRef.getCurrentRoute()?.name;
+      }}
+      onStateChange={async () => {
+        const currentRouteName =
+          navigationRef.getCurrentRoute()?.name;
 
-    return (
-        <NavigationContainer>
-            {/* {token ? <AppStack /> : <AuthStack />} */}
-            <AppStack />
-        </NavigationContainer>
-    )
+        if (routeNameRef.current !== currentRouteName) {
+          await logEvent('screen_view', {
+            screen_name: currentRouteName,
+          });
+
+          routeNameRef.current = currentRouteName;
+        }
+      }}
+    >
+        {/* {token ? <AppStack /> : <AuthStack />} */}
+      <AppStack />
+    </NavigationContainer>
+  );
 }

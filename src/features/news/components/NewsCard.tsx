@@ -20,6 +20,7 @@ import { googleSignIn } from '../../../api/auth';
 import { googleLogin } from '../../../services/auth/googleAuth';
 import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
 import { log, setUserId } from '../../../services/monitoring/crashlytics';
+import {logEvent} from '../../../services/monitoring/analytics';
 
 type ArticleLike = {
   _id: string;
@@ -103,6 +104,11 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
           useThisArticle._id
         }`,
       });
+  
+      logEvent('article_shared', {
+        article_id: useThisArticle._id,
+        article_title: useThisArticle.title ?? '',
+      });
     } catch (err) {
       console.log('Share failed:', err);
     }
@@ -116,13 +122,27 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     if (!isAuthenticated) {
       setPendingBookmark(bookmarkArticle);
       setShowAuthModal(true);
+      logEvent('bookmark_login_required', {
+        article_id: bookmarkArticle._id,
+      });
       return;
     }
 
+    const wasBookmarked = bookmarked;
+
     toggleBookmark(bookmarkArticle);
+  
+    logEvent(wasBookmarked ? 'bookmark_removed' : 'bookmark_added', {
+      article_id: bookmarkArticle._id,
+      category: bookmarkArticle.category,
+      origin: origin ?? 'Unknown',
+    });
   };
 
   const handleGoogleLogin = useCallback(async () => {
+    logEvent('login_started', {
+      method: 'google',
+    });
     log('Google login started');
     try {
       const result = await googleLogin();
@@ -139,6 +159,9 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
       console.log('Backend Google login:', response);
   
       if (response?.success) {
+        logEvent('login_success', {
+          method: 'google',
+        });
         log('Backend authentication successful');
         dispatch(
           setAuth({
@@ -151,6 +174,12 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   
         if (pendingBookmark) {
           toggleBookmark(pendingBookmark);
+
+  logEvent('bookmark_added', {
+    article_id: pendingBookmark._id,
+    category: pendingBookmark.category,
+    origin: origin ?? 'Unknown',
+  });
           setPendingBookmark(null);
   
           setTimeout(() => {
@@ -164,6 +193,9 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
         console.log('Authentication successful');
       }
     } catch (error) {
+      logEvent('login_failed', {
+        method: 'google',
+      });
       console.error('Google login failed:', error);
     }
   }, [dispatch, pendingBookmark, toggleBookmark]);

@@ -9,6 +9,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import useNews from '../hooks/useNews';
 import { useBookmarkStore } from '../../../store/BookmarkStore';
 import SkeletonCard from '../components/SkeletonCard';
+import { logEvent } from '../../../services/monitoring/analytics';
+import { AnalyticsEvents } from '../../../services/monitoring/analyticsEvents';
 
 const Home = () => {
   // const insets = useSafeAreaInsets();
@@ -54,8 +56,23 @@ const Home = () => {
     );
   }
 
-  const renderItem = (item: any) => {
-    console.log('ItemId:', item?.item?._id);
+  const renderItem = ({item}: {item: any}) => {
+    console.log('ItemId:', item?._id);
+  
+    const handleArticlePress = () => {
+      // 🟢 ANALYTICS
+      logEvent(AnalyticsEvents.ARTICLE_VIEWED, {
+        article_id: item._id,
+        source: 'home_feed',
+        origin: 'Home',
+      });
+  
+      navigation.navigate('ReadMore', {
+        id: item._id,
+        origin: 'ReadMore',
+      });
+    };
+  
     return (
       <NewsCard
         article={item}
@@ -63,14 +80,11 @@ const Home = () => {
         title="Read More"
         secondaryTitle="News Sources"
         theme={theme}
-        onPress={() =>
-          navigation.navigate('ReadMore', {
-            id: item?.item?._id,
-            origin: 'ReadMore',
-          })
-        }
+        onPress={handleArticlePress}
         onSecondaryPress={() =>
-          navigation.navigate('Sources', { id: item?.item?._id })
+          navigation.navigate('Sources', {
+            id: item._id,
+          })
         }
       />
     );
@@ -94,6 +108,10 @@ const Home = () => {
     ReactNativeHapticFeedback.trigger('impactLight');
 
     setSelectedTopic(topic);
+    
+    logEvent('category_selected', {
+      category: topic,
+    });
 
     if (topic === 'All') {
       return;

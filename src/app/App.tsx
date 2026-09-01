@@ -21,6 +21,7 @@ import {
   recordError,
   crash
 } from '@react-native-firebase/crashlytics';
+import { logEvent } from 'services/monitoring/analytics';
 
 if (__DEV__) {
   LogBox.ignoreAllLogs(false);
@@ -31,6 +32,21 @@ function App() {
   const theme = useThemeStore(state => state.theme);
   const isDarkMode = theme === 'dark';
 
+
+//test analytics
+  // useEffect(() => {
+  //   const init = async () => {
+  //     try {
+  //       await logEvent('app_open_test');
+  
+  //       await RNBootSplash.hide({fade: true});
+  //     } catch (error) {
+  //       console.error('Error initializing app:', error);
+  //     }
+  //   };
+  
+  //   init();
+  // }, []);
   
   useEffect(() => {
     configureGoogleSignIn();
@@ -47,6 +63,7 @@ function App() {
   }, []);
 
 
+//test crashlytics
 
   // useEffect(() => {
   //   const crashlytics = getCrashlytics();
@@ -56,7 +73,9 @@ function App() {
   //     new Error('NoBiasNews Crashlytics test'),
   //   );
     
-  // }, []);
+  // }, []);\\
+
+
 
   
 

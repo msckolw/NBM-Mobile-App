@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useThemeStore } from "../../../store/ThemeStore";
 import { getArticle } from "../../../api/news";
+import { logEvent } from '../../../services/monitoring/analytics';
 
 type SourceItem = {
   source_type?: string;
@@ -47,7 +48,10 @@ export default function SourcesScreen(props: any) {
         const res = await getArticle(id, true);
         const src = Array.isArray(res?.source) ? res.source : [];
         setSources(src);
-
+        logEvent('sources_viewed', {
+          article_id: id,
+          source_count: src.length,
+        });
         const nextExpanded: Record<string, boolean> = {};
         for (const s of src) {
           const key = s?.source_type || "Other";
@@ -151,7 +155,14 @@ export default function SourcesScreen(props: any) {
                       return (
                         <TouchableOpacity
                           key={`${type}-${idx}`}
-                          onPress={() => (navigation as any).navigate("WebViewScreen", { url })}
+                          onPress={() => {
+                            logEvent('source_opened', {
+                              article_id: id,
+                              source_type: type,
+                            });
+                          
+                            (navigation as any).navigate('WebViewScreen', { url });
+                          }}
                           disabled={!url}
                           style={{
                             marginHorizontal: 16,
