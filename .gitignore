@@ -77,3 +77,4 @@ yarn-error.log
 
 # Local React Native migration backups
 migration-backups/
+ios/GoogleService-Info.plist
