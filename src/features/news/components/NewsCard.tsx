@@ -169,7 +169,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
             user: response.user,
           }),
         );
-        setUserId(response.user.id);
+        setUserId(String(response.user.id));
         setShowAuthModal(false);
   
         if (pendingBookmark) {
