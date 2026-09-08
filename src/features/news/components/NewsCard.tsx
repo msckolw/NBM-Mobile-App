@@ -21,6 +21,8 @@ import { googleLogin } from '../../../services/auth/googleAuth';
 import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
 import { log, setUserId } from '../../../services/monitoring/crashlytics';
 import {logEvent} from '../../../services/monitoring/analytics';
+import { devLog } from "../../../utils/devLog";
+
 
 type ArticleLike = {
   _id: string;
@@ -69,7 +71,7 @@ export default function NewsCard({
 const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-
+  const isDark = theme === 'dark';
   const isAuthenticated = !!token;
   const isReadMore = origin === 'ReadMore';
   const useThisArticle: ArticleLike | undefined = isReadMore
@@ -109,7 +111,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
         article_title: useThisArticle.title ?? '',
       });
     } catch (err) {
-      console.log('Share failed:', err);
+      devLog('Share failed:', err);
     }
   };
 
@@ -155,7 +157,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
         name: result.user.name ?? '',
       });
   
-      console.log('Backend Google login:', response);
+      devLog('Backend Google login:', response);
   
       if (response?.success) {
         logEvent('login_success', {
@@ -189,7 +191,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
           }, 300);
         }
         log('User session established');
-        console.log('Authentication successful');
+        devLog('Authentication successful');
       }
     } catch (error) {
       logEvent('login_failed', {
@@ -204,36 +206,77 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     <View
       style={[
         styles.card,
-        { backgroundColor: theme == 'dark' ? 'black' : 'white' },
+        {backgroundColor: isDark ? '#1A1A1A' : '#fff', },
       ]}
     >
       {/* origin = "ReadMore" */}
       <Image source={{ uri: useThisArticle.imageUrl }} style={styles.image} />
 
-      <Text style={styles.category}>
-        {useThisArticle?.category?.toUpperCase()}
-      </Text>
+      <Text
+  style={[
+    styles.category,
+    {
+      color: '#007AFF',
+    },
+  ]}
+>
+  {useThisArticle?.category?.toUpperCase()}
+</Text>
 
-      <Text style={styles.title}>{useThisArticle?.title}</Text>
+<Text
+  style={[
+    styles.title,
+    {
+      color: isDark ? '#fff' : '#000',
+    },
+  ]}
+>
+  {useThisArticle?.title}
+</Text>
 
-      <Text style={styles.summary}>{useThisArticle?.summary}</Text>
+<Text
+  style={[
+    styles.summary,
+    {
+      color: isDark ? '#ccc' : '#444',
+    },
+  ]}
+>
+  {useThisArticle?.summary}
+</Text>
 
       {/* ACTION BUTTONS */}
       <View style={styles.actions}>
         <View>
           {!!useThisArticle?.createdAt && (
-            <Text style={styles.date}>
-              {new Date(useThisArticle.createdAt).toDateString()}
-            </Text>
+         <Text
+  style={[
+    styles.date,
+    {
+      color: isDark ? '#999' : '#666',
+    },
+  ]}
+>
+  {new Date(useThisArticle.createdAt).toDateString()}
+</Text>
           )}
           {!!useThisArticle?.createdAt && (
-            <Text style={styles.date}>{timeAgo(useThisArticle.createdAt)}</Text>
+            <Text
+            style={[
+              styles.date,
+              {
+                color: isDark ? '#999' : '#666',
+              },
+            ]}
+          >
+            {timeAgo(useThisArticle.createdAt)}
+          </Text>
           )}
         </View>
 
         <View style={styles.actions}>
           <TouchableOpacity onPress={handleShare}>
-            <Icon name="share-social-outline" size={24} color="#555" />
+            <Icon name="share-social-outline" size={24} color={isDark ? '#ccc' : '#555'} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -244,8 +287,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
               name={bookmarked ? 'bookmark' : 'bookmark-outline'}
               // name={isBookmarked ? "bookmark" : "bookmark-outline"}
               size={26}
-              color={'#555'}
-              // color={isBookmarked ? "#007AFF" : "#555"}
+              color={isDark ? '#ccc' : '#555'}
             />
           </TouchableOpacity>
         </View>
@@ -279,7 +321,6 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 const styles = StyleSheet.create({
   card: {
     marginBottom: 18,
-    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 16,
     elevation: 3,

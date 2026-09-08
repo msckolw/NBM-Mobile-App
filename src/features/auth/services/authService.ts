@@ -3,6 +3,8 @@ import api from '../../../api/client'
 // import api from '../../../api/api';
 import {store} from '../../../store';
 import {setAuth} from '../store/authslice';
+import { devLog } from "../../../utils/devLog";
+
 
 export const loginWithGoogle = async () => {
   const googleResult = await googleLogin();
@@ -21,7 +23,7 @@ export const loginWithGoogle = async () => {
     idToken: googleResult?.idToken,
   });
 
-  console.log('Backend Google login:', response.data);
+  devLog('Backend Google login:', response.data);
 
   const backendUser = response.data?.user;
 

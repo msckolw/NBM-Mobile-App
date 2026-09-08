@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import useAuthStore from '../../../store/AuthStore';
-import { useThemeStore } from '../../../store/ThemeStore';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -14,6 +13,10 @@ import { googleSignIn } from '../../../api/auth';
 import { googleLogin } from '../../../services/auth/googleAuth';
 import { log, setUserId } from '../../../services/monitoring/crashlytics';
 import { logEvent } from '../../../services/monitoring/analytics';
+import { devLog } from "../../../utils/devLog";
+import { useTheme } from '../../../context/ThemeContext';
+
+
 
 
 const Profile = () => {
@@ -22,7 +25,7 @@ const Profile = () => {
     (state: RootState) => state.auth,
   );
   
-  const theme = useThemeStore((s: any) => s.theme);
+  const {theme} = useTheme();
   const navigation = useNavigation()
   
 
@@ -49,7 +52,7 @@ const Profile = () => {
         name: result.user.name ?? '',
       });
   
-      console.log('Backend Google login:', response);
+      devLog('Backend Google login:', response);
   
       if (response?.success) {
         logEvent('login_success', {

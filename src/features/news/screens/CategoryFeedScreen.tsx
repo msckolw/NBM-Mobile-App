@@ -10,13 +10,15 @@ import { useNavigation } from '@react-navigation/native';
 import { getNewsByCategoryPaged } from '../../../api/news';
 import NewsCard from '../components/NewsCard';
 import TopicTabs from '../components/TopicTabs';
-import { useThemeStore } from '../../../store/ThemeStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SkeletonCard from '../components/SkeletonCard';
+import { devLog } from "../../../utils/devLog";
+import { useTheme } from '../../../context/ThemeContext';
+
 
 export default function CategoryFeedScreen({ route }) {
   const { topic } = route.params;
-  const theme = useThemeStore((s: any) => s.theme);
+  const {theme} = useTheme();
 
   const navigation = useNavigation();
   const [articles, setArticles] = useState<any[]>([]);
@@ -55,7 +57,7 @@ export default function CategoryFeedScreen({ route }) {
           replace ? nextArticles : [...prev, ...nextArticles],
         );
       } catch (e) {
-        console.log('Fetch error:', e);
+        devLog('Fetch error:', e);
         setError('Failed to load articles');
         if (replace) {
           setArticles([]);

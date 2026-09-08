@@ -2,11 +2,12 @@ import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-
 import {ENV} from '../../config/env';
+import { devLog } from "../../utils/devLog";
+
 
 export const configureGoogleSignIn = () => {
-  console.log(
+  devLog(
     'GOOGLE WEB CLIENT ID:',
     ENV.GOOGLE_WEB_CLIENT_ID,
   );
@@ -24,7 +25,7 @@ export const googleLogin = async () => {
 
     const userInfo = await GoogleSignin.signIn();
 
-    console.log('Google User:', userInfo);
+    devLog('Google User:', userInfo);
 
     const idToken = userInfo.data?.idToken;
 
@@ -33,7 +34,7 @@ export const googleLogin = async () => {
       return null;
     }
 
-    console.log('Google ID Token received');
+    devLog('Google ID Token received');
 
     return {
       user: userInfo.data?.user,
@@ -41,7 +42,7 @@ export const googleLogin = async () => {
     };
   } catch (error: any) {
     if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
-      console.log('Google Sign-In cancelled by user');
+      devLog('Google Sign-In cancelled by user');
       return null;
     }
 

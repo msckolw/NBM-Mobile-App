@@ -1,64 +1,96 @@
-import SkeletonPlaceholder from "react-native-skeleton-placeholder";
+import React from 'react';
+import {View} from 'react-native';
+import {useTheme} from '../../../context/ThemeContext';
 
 export default function SkeletonCard() {
+  const {theme} = useTheme();
+
+  const isDark = theme === 'dark';
+
+  const skeletonColor = isDark ? '#2A2A2A' : '#E5E5E5';
+
   return (
-    <SkeletonPlaceholder>
-      <SkeletonPlaceholder.Item
-        marginBottom={18}
-        padding={16}
-        borderRadius={16}
-      >
-        {/* Image */}
-        <SkeletonPlaceholder.Item
-          width="100%"
-          height={220}
-          borderRadius={14}
-        />
+    <View
+      style={{
+        marginBottom: 18,
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: isDark ? '#1A1A1A' : '#fff',
+      }}>
+      
+      {/* Image */}
+      <View
+        style={{
+          width: '100%',
+          height: 220,
+          borderRadius: 14,
+          backgroundColor: skeletonColor,
+        }}
+      />
 
-        {/* Category */}
-        <SkeletonPlaceholder.Item
-          width={80}
-          height={12}
-          marginTop={12}
-          borderRadius={4}
-        />
+      {/* Category */}
+      <View
+        style={{
+          width: 80,
+          height: 12,
+          marginTop: 12,
+          borderRadius: 4,
+          backgroundColor: skeletonColor,
+        }}
+      />
 
-        {/* Title */}
-        <SkeletonPlaceholder.Item
-          width="90%"
-          height={20}
-          marginTop={10}
-          borderRadius={4}
-        />
-        <SkeletonPlaceholder.Item
-          width="70%"
-          height={20}
-          marginTop={6}
-          borderRadius={4}
-        />
+      {/* Title */}
+      <View
+        style={{
+          width: '90%',
+          height: 20,
+          marginTop: 10,
+          borderRadius: 4,
+          backgroundColor: skeletonColor,
+        }}
+      />
 
-        {/* Summary */}
-        <SkeletonPlaceholder.Item
-          width="95%"
-          height={14}
-          marginTop={10}
-          borderRadius={4}
-        />
-        <SkeletonPlaceholder.Item
-          width="85%"
-          height={14}
-          marginTop={6}
-          borderRadius={4}
-        />
+      <View
+        style={{
+          width: '70%',
+          height: 20,
+          marginTop: 6,
+          borderRadius: 4,
+          backgroundColor: skeletonColor,
+        }}
+      />
 
-        {/* Footer Date */}
-        <SkeletonPlaceholder.Item
-          width={60}
-          height={12}
-          marginTop={12}
-          borderRadius={4}
-        />
-      </SkeletonPlaceholder.Item>
-    </SkeletonPlaceholder>
+      {/* Summary */}
+      <View
+        style={{
+          width: '95%',
+          height: 14,
+          marginTop: 10,
+          borderRadius: 4,
+          backgroundColor: skeletonColor,
+        }}
+      />
+
+      <View
+        style={{
+          width: '85%',
+          height: 14,
+          marginTop: 6,
+          borderRadius: 4,
+          backgroundColor: skeletonColor,
+        }}
+      />
+
+      {/* Date */}
+      <View
+        style={{
+          width: 60,
+          height: 12,
+          marginTop: 12,
+          borderRadius: 4,
+          backgroundColor: skeletonColor,
+        }}
+      />
+    </View>
   );
 }

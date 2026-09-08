@@ -5,6 +5,8 @@ import * as yup from "yup";
 import Input from "../../../components/common/Input";
 import {registerApi} from "../../../api/auth";
 import { useAuthStore } from "../../../store/AuthStore";
+import { devLog } from "../../../utils/devLog";
+
 
 
 const schema = yup.object({
@@ -26,15 +28,15 @@ export default function RegisterScreen({ navigation }) {
 
 const onSubmit = async (data) => {
   try {
-    console.log("Register data:", data);
+    devLog("Register data:", data);
 
     const res = await registerApi(data);
 
-    console.log("Register response:", res.data);
+    devLog("Register response:", res.data);
 
     setAuth(res.data.user, res.data.token);
   } catch (error) {
-    console.log("Register error:", error);
+    devLog("Register error:", error);
   }
 };
 

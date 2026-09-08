@@ -7,6 +7,8 @@ import { loginApi } from "../../../api/auth";
 import { useAuthStore } from "../../../store/AuthStore";
 import Toast from "react-native-toast-message";
 import RegisterScreen from "./RegisterScreen";
+import { devLog } from "../../../utils/devLog";
+
 
 const schema = yup.object({
   email: yup.string().email().required(),
@@ -24,10 +26,10 @@ export default function LoginScreen({ navigation }) {
     try {
       const res = await loginApi(data.email, data.password);
       Alert.alert("LoginSuccessfull")
-      console.log("res?.data?.token", res?.data?.token)
+      devLog("res?.data?.token", res?.data?.token)
       setAuth(res?.data?.user, res?.data?.token);
     } catch (err) {
-      console.log("loginFailed error:", err)
+      devLog("loginFailed error:", err)
         Toast.show({
             type: "error",
             text1: "Login failed"

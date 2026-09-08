@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { View, FlatList, Dimensions, ActivityIndicator } from "react-native";
 import { getNews } from "../../../api/news";
 import NewsCard from "../components/NewsCard";
+import { devLog } from "../../../utils/devLog";
+
 
 const { height } = Dimensions.get("window");
 
@@ -11,16 +13,16 @@ export default function SwipeFeedScreen() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  console.log("ArticlesFromSwipe:", articles)
+  devLog("ArticlesFromSwipe:", articles)
 
   const loadNews = async () => {
     try {
       const response = await getNews(page);
-      console.log("API_RESPONSE:", response);
+      devLog("API_RESPONSE:", response);
       setArticles(response.articles || []);
       setTotalPages(response.totalPages);
     } catch (err) {
-      console.log("ERROR:", err);
+      devLog("ERROR:", err);
     } finally {
       setLoading(false);
     }

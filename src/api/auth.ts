@@ -1,10 +1,11 @@
 import api from "./client";
+import { devLog } from "../utils/devLog";
 
 
 
 export const loginApi = async(email:string, password:string)=>{
     const res = await api.post("/auth/login", {email, password})
-    console.log("LoginRes:", res)
+    devLog("LoginRes:", res)
     return res
 }
 

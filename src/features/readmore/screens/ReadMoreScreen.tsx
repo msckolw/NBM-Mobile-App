@@ -10,7 +10,6 @@ import {
   Alert,
 } from 'react-native';
 import { useDetailedNews } from '../../news/hooks/DetailedNews';
-import { useThemeStore } from '../../../store/ThemeStore';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useBookmarkStore } from '../../../store/BookmarkStore';
@@ -24,6 +23,9 @@ import { googleLogin } from '../../../services/auth/googleAuth';
 import { googleSignIn } from '../../../api/auth';
 import { AppDispatch, RootState } from '../../../store/index';
 import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
+import { devLog } from "../../../utils/devLog";
+import { useTheme } from '../../../context/ThemeContext';
+
 // TEMPORARILY COMMENTED OUT FOR BUILD - WILL RESTORE LATER
 // import { googleLogin } from "../../services/auth/googleAuth";
 
@@ -31,7 +33,7 @@ const ReadMore = (props: any) => {
   const trackedRead = useRef(false);
   const { id } = props?.route?.params || {};
   const { data, loading, error } = useDetailedNews(id);
-  const theme = useThemeStore((s: any) => s.theme);
+  const {theme} = useTheme();
   const navigation = useNavigation();
   const { toggleBookmark, isBookmarked } = useBookmarkStore();
   const dispatch = useDispatch<AppDispatch>();
@@ -110,13 +112,13 @@ const [showAuthModal, setShowAuthModal] = useState(false);
         origin: 'ReadMore',
       });
     } catch (err) {
-      console.log('Share failed:', err);
+      devLog('Share failed:', err);
     }
   };
 
 
   const handleBookmark = () => {
-    console.log("dawda")
+    devLog("dawda")
     if (!article?._id) {
       return;
     }
@@ -156,7 +158,7 @@ const [showAuthModal, setShowAuthModal] = useState(false);
         name: result.user.name ?? '',
       });
   
-      console.log('Backend Google login:', response);
+      devLog('Backend Google login:', response);
   
       if (response?.success) {
         log('Backend authentication successful');

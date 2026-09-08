@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getNews } from '../../../api/news';
 import { recordError } from '../../../services/monitoring/crashlytics';
+import { devLog } from "../../../utils/devLog";
+
 
 const useNews = () => {
   const [articles, setArticles] = useState<any[]>([]);
@@ -26,7 +28,7 @@ const useNews = () => {
     // const requestStart = performance.now();
     const requestStart = Date.now();
 
-    console.log(
+    devLog(
       `⏱️ [NEWS] Request started | page=${pageNumber} | +${(
         requestStart - globalThis.__APP_START_TIME__
       ).toFixed(0)}ms`,
@@ -39,7 +41,7 @@ const useNews = () => {
 
       const responseTime = Date.now();
 
-console.log(
+devLog(
   `News API response | +${(
     responseTime - globalThis.__APP_START_TIME__
   ).toFixed(0)}ms | API=${(
@@ -47,7 +49,7 @@ console.log(
   ).toFixed(0)}ms`,
 );
 
-      console.log('NEWS API RESPONSE:', res);
+      devLog('NEWS API RESPONSE:', res);
 
       const sanitized = (res?.articles || []).filter(
         item => item && item?._id,
@@ -58,7 +60,7 @@ console.log(
       } else {
         setArticles(prev => [...prev, ...sanitized]);
       }
-      console.log(
+      devLog(
         `News Articles state queued | count=${sanitized.length} | +${(
           Date.now() - globalThis.__APP_START_TIME__
         ).toFixed(0)}ms`,
@@ -66,7 +68,7 @@ console.log(
       setPage(pageNumber);
       setTotalPages(res?.totalPages || 1);
     } catch (error) {
-      console.log('Error fetching news:', error);
+      devLog('Error fetching news:', error);
 
       setError('Failed to load news');
 

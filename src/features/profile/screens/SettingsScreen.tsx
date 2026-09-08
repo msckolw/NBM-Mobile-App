@@ -4,16 +4,15 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useThemeStore } from '../../../store/ThemeStore';
 import useAndroidBackHandler from '../../../hooks/useAndroidBackHandler';
+import { useTheme } from '../../../context/ThemeContext';
 
 const Settings = () => {
   useAndroidBackHandler();
-
-  const theme = useThemeStore(s => s.theme);
-  const toggleTheme = useThemeStore(s => s.toggleTheme);
-
   const navigation = useNavigation();
+
+  const {theme, toggleTheme} = useTheme();
+
 
   const isDark = theme === 'dark';
 
@@ -110,15 +109,9 @@ const Settings = () => {
           </View>
 
           <Switch
-            value={isDark}
-            // onValueChange={toggleTheme}
-            onValueChange={() => {
-              Alert.alert(
-                'Coming Soon',
-                'Dark Mode will be available in a future update.',
-              );
-            }}
-          />
+  value={isDark}
+  onValueChange={toggleTheme}
+/>
         </View>
 
         {/* INFORMATION */}
@@ -350,7 +343,7 @@ const Settings = () => {
               marginLeft: 14,
               fontSize: 16,
               fontWeight: '600',
-              color:{secondaryColor},
+              color: secondaryColor,
             }}
           >
             Delete Account

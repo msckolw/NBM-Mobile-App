@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { store } from '../store';
+import { devLog } from "../utils/devLog";
+
 
 const baseURL = 'https://nobiasmedia.onrender.com/api';
 const timeOut = 10000;
@@ -17,11 +19,11 @@ const api = axios.create({
       config.headers.Authorization = `Bearer ${token}`;
     }
   
-    console.log('========== API REQUEST ==========');
-    console.log('method:', config.method);
-    console.log('baseURL:', config.baseURL);
-    console.log('url:', config.url);
-    console.log('=================================');
+    devLog('========== API REQUEST ==========');
+    devLog('method:', config.method);
+    devLog('baseURL:', config.baseURL);
+    devLog('url:', config.url);
+    devLog('=================================');
   
     return config;
   });
@@ -29,17 +31,17 @@ const api = axios.create({
 api.interceptors.response.use(
   response => response,
   error => {
-    console.log('========== API ERROR ==========');
-    console.log('message:', error?.message);
-    console.log('code:', error?.code);
-    console.log('url:', error?.config?.url);
-    console.log('baseURL:', error?.config?.baseURL);
-    console.log('method:', error?.config?.method);
-    console.log('timeout:', error?.config?.timeout);
-    console.log('status:', error?.response?.status);
-    console.log('response:', error?.response?.data);
-    console.log('request:', error?.request);
-    console.log('================================');
+    devLog('========== API ERROR ==========');
+    devLog('message:', error?.message);
+    devLog('code:', error?.code);
+    devLog('url:', error?.config?.url);
+    devLog('baseURL:', error?.config?.baseURL);
+    devLog('method:', error?.config?.method);
+    devLog('timeout:', error?.config?.timeout);
+    devLog('status:', error?.response?.status);
+    devLog('response:', error?.response?.data);
+    devLog('request:', error?.request);
+    devLog('================================');
 
     return Promise.reject(error);
   },

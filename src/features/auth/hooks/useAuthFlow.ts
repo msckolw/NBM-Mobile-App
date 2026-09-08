@@ -1,6 +1,8 @@
 import {useState} from 'react';
 import {loginWithGoogle} from '../services/authService';
-import {PendingAuthAction} from '../types/authTypes';
+import {PendingAuthAction} from '../types/auth.types';
+import { devLog } from "../../../utils/devLog";
+
 
 export const useAuthFlow = () => {
   const [pendingAction, setPendingAction] =
@@ -38,7 +40,7 @@ export const useAuthFlow = () => {
 
       const result = await loginWithGoogle();
 
-      console.log('Authentication successful:', result);
+      devLog('Authentication successful:', result);
 
       setAuthModalVisible(false);
 

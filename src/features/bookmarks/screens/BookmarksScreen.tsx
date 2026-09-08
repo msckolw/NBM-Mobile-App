@@ -3,13 +3,12 @@ import { useNavigation } from "@react-navigation/native";
 import { useBookmarkStore } from "../../../store/BookmarkStore";
 import NewsCard from "../../news/components/NewsCard";
 import { SafeAreaView } from "react-native-safe-area-context";
-import TopicTabs from "../../../features/news/components/TopicTabs"
-import { useThemeStore } from '../../../store/ThemeStore';
+import { useTheme } from "../../../context/ThemeContext";
 
 export default function BookmarksScreen() {
   const items = useBookmarkStore((s) => s.items);
   const navigation = useNavigation();
-  const theme = useThemeStore(s => s.theme);
+  const {theme} = useTheme();
 
 
   return (
@@ -31,7 +30,7 @@ export default function BookmarksScreen() {
         //   }
         //   navigation.navigate('CategoryFeed', { topic });
         // }}
-        onPress = {()=>console.log("dawd")}
+        onPress = {()=>devLog("dawd")}
       /> */}
     <FlatList
       data={items}

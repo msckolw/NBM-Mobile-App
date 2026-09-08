@@ -1,36 +1,40 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Home from '../../features/news/screens/Home';
-import Profile from '../../features/profile/screens/ProfileScreen'
-import Search from '../../features/search/screens/SearchScreen'
-import Bookmarks from '../../features/bookmarks/screens/BookmarksScreen'
-import Ionicons from "react-native-vector-icons/Ionicons";
 import SwipeFeedScreen from '../../features/news/screens/swipefeedScreen';
 import ReadMore from '../../features/readmore/screens/ReadMoreScreen';
 import SourcesScreen from '../../features/sources/screens/SourcesScreen';
 import AppScreens from './BottomTabs';
 import CategoryFeedScreen from '../../features/news/screens/CategoryFeedScreen';
 import Settings from '../../features/profile/screens/SettingsScreen';
-import { Alert, Pressable, View } from 'react-native';
-// import HeaderButtons from '../components/common/HEaderButtons';
-import ReactNativeHapticFeedback from "react-native-haptic-feedback";
-import TopicTabs from '../../features/news/components/TopicTabs';
 import WebViewScreen from '../../features/webview/screens/WebViewScreen';
+import { devLog } from "../../utils/devLog";
+import {useTheme} from '../../context/ThemeContext';
+
 
 
 
 
 const Stack = createNativeStackNavigator();
 
-const PlaceholderScreen = () =>null;
+// const PlaceholderScreen = () =>null;
 
 
 export default function AppStack (){
+  const {theme} = useTheme();
+
+  const isDark = theme === 'dark';
+    devLog(
+    `⏱️ [APPSTACK] Render | +${
+      Date.now() - globalThis.__APP_START_TIME__
+    }ms`,
+  );
     return (
       <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        contentStyle: {
+          backgroundColor: isDark ? '#000' : '#fff',
+        },
       }}
     >
       {/* Bottom Tabs */}

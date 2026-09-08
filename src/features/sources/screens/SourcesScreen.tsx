@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Ionicons";
-import { useThemeStore } from "../../../store/ThemeStore";
 import { getArticle } from "../../../api/news";
 import { logEvent } from '../../../services/monitoring/analytics';
+import { useTheme } from "../../../context/ThemeContext";
 
 type SourceItem = {
   source_type?: string;
@@ -30,7 +30,7 @@ const getPoliticalColor = (sourceType: string) => {
 export default function SourcesScreen(props: any) {
   const { id } = props?.route?.params || {};
   const navigation = useNavigation();
-  const theme = useThemeStore((s: any) => s.theme);
+  const {theme} = useTheme();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);

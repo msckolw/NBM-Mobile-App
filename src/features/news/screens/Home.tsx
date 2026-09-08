@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, ActivityIndicator, FlatList, TouchableOpacity, Text } from 'react-native';
 import NewsCard from '../components/NewsCard';
-import { useThemeStore } from '../../../store/ThemeStore';
+import {useTheme} from '../../../context/ThemeContext';
 import TopicTabs from '../components/TopicTabs';
 import { useNavigation } from '@react-navigation/native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
@@ -11,9 +11,16 @@ import { useBookmarkStore } from '../../../store/BookmarkStore';
 import SkeletonCard from '../components/SkeletonCard';
 import { logEvent } from '../../../services/monitoring/analytics';
 import { AnalyticsEvents } from '../../../services/monitoring/analyticsEvents';
+import { devLog } from "../../../utils/devLog";
+
+
 
 const Home = () => {
   // const insets = useSafeAreaInsets();
+  const {theme, isThemeReady} = useTheme();
+  const [selectedTopic, setSelectedTopic] = useState('All');
+  const firstArticleRendered = useRef(false);
+
   const navigation = useNavigation();
   const {
     loading,
@@ -26,21 +33,37 @@ const Home = () => {
     loadMore,
     page,
   } = useNews();
-  const toggleBookmark = useBookmarkStore(s => s.toggleBookmark);
-  const theme = useThemeStore((s: any) => s.theme);
   
-  const [selectedTopic, setSelectedTopic] = useState('All');
-  const firstArticleRendered = useRef(false);
+
+  devLog(
+    'THEME:',
+    theme,
+    'READY:',
+    isThemeReady,
+  );
+  
+ 
 
   const safeArticles = (articles || []).filter(item => item && item?._id);
 
+
+  const renderSkeletonPlaceholder = useCallback(
+    () => <SkeletonCard />,
+    [],
+  );
+
+
   useEffect(() => {
-    console.log(
+    devLog(
       `Home : Mounted | +${(
         Date.now() - globalThis.__APP_START_TIME__
       ).toFixed(0)}ms`,
     );
   }, []);
+
+  if (!isThemeReady) {
+    return null;
+  }
 
   if (loading && page === 1) {
     return (
@@ -56,7 +79,7 @@ const Home = () => {
         <FlatList
           data={[1, 2, 3, 4, 5]}
           keyExtractor={item => item.toString()}
-          renderItem={() => <SkeletonCard />}
+          renderItem={renderSkeletonPlaceholder}
           showsVerticalScrollIndicator={false}
         />
       </SafeAreaView>
@@ -133,7 +156,7 @@ const Home = () => {
     if (!firstArticleRendered.current) {
       firstArticleRendered.current = true;
     
-      console.log(
+      devLog(
         `TTI : First NewsCard rendered | +${(
           Date.now() - globalThis.__APP_START_TIME__
         ).toFixed(0)}ms`,

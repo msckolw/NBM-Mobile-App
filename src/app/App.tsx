@@ -5,80 +5,49 @@ import {
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import RNBootSplash from 'react-native-bootsplash';
+import BootSplash from 'react-native-bootsplash';
 import Toast from 'react-native-toast-message';
 import {Provider} from 'react-redux';
+
 import RootNavigator from './navigation/RootNavigator';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import {store} from '../store';
-import {useThemeStore} from '../store/ThemeStore';
-import { configureGoogleSignIn } from "../services/auth/googleAuth";
-import BootSplash from 'react-native-bootsplash';
+import {configureGoogleSignIn} from '../services/auth/googleAuth';
+import {devLog} from '../utils/devLog';
+import {ThemeProvider, useTheme} from '../context/ThemeContext';
 
 if (__DEV__) {
   LogBox.ignoreAllLogs(false);
 }
 
-function App() {
-  // ALL HOOKS FIRST
-  const theme = useThemeStore(state => state.theme);
+function AppContent() {
+  const {theme, isThemeReady} = useTheme();
+
   const isDarkMode = theme === 'dark';
 
-
   useEffect(() => {
-    const init = async () => {
-      await BootSplash.hide({fade: true});
-    };
+    devLog(
+      `App Mounted | +${
+        Date.now() - globalThis.__APP_START_TIME__
+      }ms`,
+    );
 
-    init();
-  }, []);
-
-
-//test analytics
-  // useEffect(() => {
-  //   const init = async () => {
-  //     try {
-  //       await logEvent('app_open_test');
-  
-  //       await RNBootSplash.hide({fade: true});
-  //     } catch (error) {
-  //       console.error('Error initializing app:', error);
-  //     }
-  //   };
-  
-  //   init();
-  // }, []);
-  
-  useEffect(() => {
     configureGoogleSignIn();
-  
+
     const init = async () => {
       try {
-        await RNBootSplash.hide({fade: true});
+        await BootSplash.hide({fade: true});
       } catch (error) {
         console.error('Error hiding boot splash:', error);
       }
     };
-  
+
     init();
   }, []);
 
-
-//test crashlytics
-
-  // useEffect(() => {
-  //   const crashlytics = getCrashlytics();
-  
-  //   recordError(
-  //     crashlytics,
-  //     new Error('NoBiasNews Crashlytics test'),
-  //   );
-    
-  // }, []);\\
-
-
-
-  
+  if (!isThemeReady) {
+    return null;
+  }
 
   return (
     <Provider store={store}>
@@ -95,6 +64,20 @@ function App() {
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </Provider>
+  );
+}
+
+function App() {
+  devLog(
+    `App Render | +${
+      Date.now() - globalThis.__APP_START_TIME__
+    }ms`,
+  );
+
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 
