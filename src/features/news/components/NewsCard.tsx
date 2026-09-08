@@ -93,7 +93,6 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   if (!useThisArticle?._id) {
     return null;
   }
-  console.log('Bookmark pressed:', useThisArticle?._id);
   const handleShare = async () => {
     try {
       await Share.share({

@@ -1,8 +1,6 @@
 import React, {useEffect} from 'react';
 import {
   StatusBar,
-  StyleSheet,
-  View,
   LogBox,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -10,18 +8,12 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import RNBootSplash from 'react-native-bootsplash';
 import Toast from 'react-native-toast-message';
 import {Provider} from 'react-redux';
-
 import RootNavigator from './navigation/RootNavigator';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import {store} from '../store';
 import {useThemeStore} from '../store/ThemeStore';
 import { configureGoogleSignIn } from "../services/auth/googleAuth";
-import {
-  getCrashlytics,
-  recordError,
-  crash
-} from '@react-native-firebase/crashlytics';
-import { logEvent } from 'services/monitoring/analytics';
+import BootSplash from 'react-native-bootsplash';
 
 if (__DEV__) {
   LogBox.ignoreAllLogs(false);
@@ -31,6 +23,15 @@ function App() {
   // ALL HOOKS FIRST
   const theme = useThemeStore(state => state.theme);
   const isDarkMode = theme === 'dark';
+
+
+  useEffect(() => {
+    const init = async () => {
+      await BootSplash.hide({fade: true});
+    };
+
+    init();
+  }, []);
 
 
 //test analytics

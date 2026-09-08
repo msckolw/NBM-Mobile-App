@@ -1,6 +1,10 @@
 /**
  * @format
  */
+
+//TTI measure
+// globalThis.__APP_START_TIME__ = performance.now();
+globalThis.__APP_START_TIME__ = Date.now();
 import 'react-native-gesture-handler';
 import {enableScreens} from 'react-native-screens';
 import {AppRegistry} from 'react-native';

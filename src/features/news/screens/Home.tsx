@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, ActivityIndicator, FlatList } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, ActivityIndicator, FlatList, TouchableOpacity, Text } from 'react-native';
 import NewsCard from '../components/NewsCard';
 import { useThemeStore } from '../../../store/ThemeStore';
 import TopicTabs from '../components/TopicTabs';
@@ -17,6 +17,7 @@ const Home = () => {
   const navigation = useNavigation();
   const {
     loading,
+    loadingMore,
     articles,
     totalPages,
     error,
@@ -24,16 +25,22 @@ const Home = () => {
     onRefresh,
     loadMore,
     page,
-    // loadingMore
   } = useNews();
   const toggleBookmark = useBookmarkStore(s => s.toggleBookmark);
   const theme = useThemeStore((s: any) => s.theme);
-
+  
   const [selectedTopic, setSelectedTopic] = useState('All');
-  console.log('NewsFromnbackend', loading, articles, totalPages, error);
-  console.log('themetoggle:', theme);
+  const firstArticleRendered = useRef(false);
 
   const safeArticles = (articles || []).filter(item => item && item?._id);
+
+  useEffect(() => {
+    console.log(
+      `Home : Mounted | +${(
+        Date.now() - globalThis.__APP_START_TIME__
+      ).toFixed(0)}ms`,
+    );
+  }, []);
 
   if (loading && page === 1) {
     return (
@@ -56,8 +63,82 @@ const Home = () => {
     );
   }
 
+  if (!loading && error && safeArticles.length === 0) {
+    return (
+      <SafeAreaView
+        edges={['top']}
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: theme === 'light' ? '#fff' : '#000',
+        }}
+      >
+        <View
+  style={{
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  }}
+>
+  <Text
+    style={{
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme === 'light' ? '#111' : '#fff',
+      marginBottom: 8,
+    }}
+  >
+    Unable to load news
+  </Text>
+
+  <Text
+    style={{
+      fontSize: 14,
+      textAlign: 'center',
+      color: theme === 'light' ? '#666' : '#aaa',
+      marginBottom: 20,
+    }}
+  >
+    Something went wrong while loading the latest news.
+  </Text>
+
+  <TouchableOpacity
+    onPress={onRefresh}
+    style={{
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 8,
+      backgroundColor: '#007AFF',
+    }}
+  >
+    <Text
+      style={{
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '600',
+      }}
+    >
+      Try Again
+    </Text>
+  </TouchableOpacity>
+</View>
+      </SafeAreaView>
+    );
+  }
+
   const renderItem = ({item}: {item: any}) => {
-    console.log('ItemId:', item?._id);
+
+    if (!firstArticleRendered.current) {
+      firstArticleRendered.current = true;
+    
+      console.log(
+        `TTI : First NewsCard rendered | +${(
+          Date.now() - globalThis.__APP_START_TIME__
+        ).toFixed(0)}ms`,
+      );
+    }
   
     const handleArticlePress = () => {
       // 🟢 ANALYTICS
@@ -72,6 +153,8 @@ const Home = () => {
         origin: 'ReadMore',
       });
     };
+
+    
   
     return (
       <NewsCard
