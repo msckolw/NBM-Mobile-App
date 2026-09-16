@@ -319,9 +319,11 @@ const Settings = () => {
         {/* DELETE ACCOUNT */}
 
         <TouchableOpacity
-          onPress={() => {
-            // TODO: implement delete account flow
-          }}
+          onPress={() =>
+            openWebView(
+              'https://www.thenobiasmedia.com/delete-account',
+            )
+          }
           style={{
             height: 56,
             borderRadius: 14,

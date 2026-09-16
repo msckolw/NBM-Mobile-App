@@ -1,3 +1,4 @@
+import React,{ useCallback, useState }from 'react';
 import {
   View,
   Text,
@@ -7,8 +8,6 @@ import {
   Share,
   Alert,
 } from 'react-native';
-
-import { useCallback, useState } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -52,7 +51,7 @@ type NewsCardProps = {
   origin?: string;
 };
 
-export default function NewsCard({
+const  NewsCard = ({
   article,
   theme = 'light',
   onPress,
@@ -60,7 +59,7 @@ export default function NewsCard({
   secondaryTitle,
   onSecondaryPress,
   origin,
-}: NewsCardProps) {
+}: NewsCardProps) =>{
   const dispatch = useDispatch<AppDispatch>();
   const { toggleBookmark, isBookmarked } = useBookmarkStore();
   const { user, token } = useSelector((state: RootState) => state.auth);
@@ -317,6 +316,10 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     </View>
   );
 }
+
+
+
+export default React.memo(NewsCard)
 
 const styles = StyleSheet.create({
   card: {

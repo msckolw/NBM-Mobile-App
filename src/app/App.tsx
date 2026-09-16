@@ -4,7 +4,10 @@ import {
   LogBox,
 } from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  initialWindowMetrics,
+} from 'react-native-safe-area-context';
 import BootSplash from 'react-native-bootsplash';
 import Toast from 'react-native-toast-message';
 import {Provider} from 'react-redux';
@@ -51,7 +54,7 @@ function AppContent() {
 
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
+     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <GestureHandlerRootView style={{flex: 1}}>
           <StatusBar
             barStyle={isDarkMode ? 'light-content' : 'dark-content'}
