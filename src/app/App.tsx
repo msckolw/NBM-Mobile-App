@@ -19,6 +19,7 @@ import {configureGoogleSignIn} from '../services/auth/googleAuth';
 import {devLog} from '../utils/devLog';
 import {ThemeProvider, useTheme} from '../context/ThemeContext';
 import { initializeAnalyticsDeviceInfo } from '../services/monitoring/analytics';
+import { initializeNetworkMonitoring } from '../services/monitoring/crashlytics';
 
 if (__DEV__) {
   LogBox.ignoreAllLogs(false);
@@ -38,6 +39,7 @@ function AppContent() {
     );
 
     initializeAnalyticsDeviceInfo();
+    const unsubscribeNetworkMonitoring = initializeNetworkMonitoring();
     configureGoogleSignIn();
 
     const init = async () => {
@@ -49,6 +51,9 @@ function AppContent() {
     };
 
     init();
+    return () => {
+      unsubscribeNetworkMonitoring();
+    };
   }, []);
 
   if (!isThemeReady) {

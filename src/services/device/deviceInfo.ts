@@ -8,6 +8,6 @@ export const getDeviceInfo = () => {
     systemName: DeviceInfo.getSystemName(),
     systemVersion: DeviceInfo.getSystemVersion(),
     manufacturer: DeviceInfo.getManufacturerSync(),
-    isEmulator: DeviceInfo.isEmulatorSync(),
+    isEmulator: DeviceInfo.isEmulator(),
   };
 };
