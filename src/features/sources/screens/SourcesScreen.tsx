@@ -5,6 +5,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { getArticle } from "../../../api/news";
 import { logEvent } from '../../../services/monitoring/analytics';
 import { useTheme } from "../../../context/ThemeContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type SourceItem = {
   source_type?: string;
@@ -103,7 +104,12 @@ export default function SourcesScreen(props: any) {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme === "light" ? "#fff" : "#000" }}>
+    <SafeAreaView
+  edges={['top']}
+  style={{
+    flex: 1,
+    backgroundColor: theme === 'light' ? '#fff' : '#000',
+  }}>
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, flexDirection: "row", alignItems: "center" }}>
         <TouchableOpacity onPress={() => (navigation as any).goBack()} style={{ padding: 8, marginRight: 6 }}>
           <Icon name="arrow-back" size={22} color={theme === "light" ? "#000" : "#fff"} />
@@ -190,6 +196,6 @@ export default function SourcesScreen(props: any) {
           })
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
