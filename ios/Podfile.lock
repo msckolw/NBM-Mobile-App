@@ -1893,6 +1893,8 @@ PODS:
     - Yoga
   - RNCMaskedView (0.2.9):
     - React-Core
+  - RNDeviceInfo (15.0.2):
+    - React-Core
   - RNFBAnalytics (26.3.3):
     - FirebaseAnalytics/Core (= 12.18.0)
     - FirebaseAnalytics/IdentitySupport (= 12.18.0)
@@ -2370,6 +2372,7 @@ DEPENDENCIES:
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBAnalytics (from `../node_modules/@react-native-firebase/analytics`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
@@ -2589,6 +2592,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-bootsplash"
   RNCMaskedView:
     :path: "../node_modules/@react-native-masked-view/masked-view"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFBAnalytics:
     :path: "../node_modules/@react-native-firebase/analytics"
   RNFBApp:
@@ -2726,6 +2731,7 @@ SPEC CHECKSUMS:
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   RNBootSplash: 530e3c88481bfda270ab9a37de5eaa1c720b6604
   RNCMaskedView: 949696f25ec596bfc697fc88e6f95cf0c79669b6
+  RNDeviceInfo: d79872e11c8e9c4de0d65b0ee6e0cee719f37fea
   RNFBAnalytics: 357fbed7527d8fa7e5f550f572bfbb2d59231777
   RNFBApp: a7a91c12c6be5e089d8bf605abeb42cc41cfcfa0
   RNFBCrashlytics: 915941f260539b068ee881ca95be2c053e9d87c1

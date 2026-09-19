@@ -18,6 +18,7 @@ import {store} from '../store';
 import {configureGoogleSignIn} from '../services/auth/googleAuth';
 import {devLog} from '../utils/devLog';
 import {ThemeProvider, useTheme} from '../context/ThemeContext';
+import { initializeAnalyticsDeviceInfo } from '../services/monitoring/analytics';
 
 if (__DEV__) {
   LogBox.ignoreAllLogs(false);
@@ -27,6 +28,7 @@ function AppContent() {
   const {theme, isThemeReady} = useTheme();
 
   const isDarkMode = theme === 'dark';
+  
 
   useEffect(() => {
     devLog(
@@ -35,6 +37,7 @@ function AppContent() {
       }ms`,
     );
 
+    initializeAnalyticsDeviceInfo();
     configureGoogleSignIn();
 
     const init = async () => {

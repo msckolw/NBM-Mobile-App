@@ -4,6 +4,7 @@ import {
     setUserId as firebaseSetUserId,
     setUserProperty as firebaseSetUserProperty,
   } from '@react-native-firebase/analytics';
+import { getDeviceInfo } from '../../services/device/deviceInfo';
   
   const analytics = getAnalytics();
   
@@ -34,5 +35,24 @@ import {
       await firebaseSetUserProperty(analytics, name, value);
     } catch (error) {
       console.error(`Analytics property failed: ${name}`, error);
+    }
+  };
+
+
+  export const initializeAnalyticsDeviceInfo = async () => {
+    try {
+      const deviceInfo = getDeviceInfo();
+  
+      await Promise.all([
+        setUserProperty('app_version', deviceInfo.appVersion),
+        setUserProperty('build_number', deviceInfo.buildNumber),
+        setUserProperty('device_model', deviceInfo.deviceModel),
+        setUserProperty('os_name', deviceInfo.systemName),
+        setUserProperty('os_version', deviceInfo.systemVersion),
+        setUserProperty('manufacturer', deviceInfo.manufacturer),
+        setUserProperty('is_emulator', String(deviceInfo.isEmulator)),
+      ]);
+    } catch (error) {
+      console.error('Analytics device info initialization failed:', error);
     }
   };
