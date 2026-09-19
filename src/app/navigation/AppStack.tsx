@@ -49,7 +49,10 @@ export default function AppStack (){
       <Stack.Screen 
   name="WebViewScreen" 
   component={WebViewScreen}
-  options={{ headerShown: true, title: "Contact Us" }}
+  options={({route}) => ({
+    headerShown: true,
+    title: route.params?.title ?? 'Web',
+  })}
 />
 
       {/* <Stack.Screen name="Home" component={Home} /> */}

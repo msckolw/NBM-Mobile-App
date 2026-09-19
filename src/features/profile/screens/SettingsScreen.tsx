@@ -22,8 +22,8 @@ const Settings = () => {
   const secondaryColor = isDark ? '#aaa' : '#666';
   const iconColor = isDark ? '#fff' : '#222';
 
-  const openWebView = (url: string) => {
-    navigation.navigate('WebViewScreen' as never, { url } as never);
+  const openWebView = (url: string, title: string) => {
+    navigation.navigate('WebViewScreen' as never, {url, title} as never);
   };
 
   return (
@@ -135,6 +135,7 @@ const Settings = () => {
           onPress={() =>
             openWebView(
               'https://www.thenobiasmedia.com/privacy-policy',
+              'Privacy Policy'
             )
           }
           style={{
@@ -178,6 +179,7 @@ const Settings = () => {
           onPress={() =>
             openWebView(
               'https://www.thenobiasmedia.com/terms-conditions',
+              'Terms And Conditions'
             )
           }
           style={{
@@ -221,6 +223,7 @@ const Settings = () => {
           onPress={() =>
             openWebView(
               'https://www.thenobiasmedia.com/about',
+              'About Us'
             )
           }
           style={{
@@ -264,6 +267,7 @@ const Settings = () => {
           onPress={() =>
             openWebView(
               'https://www.thenobiasmedia.com/contact',
+              'Contact Us'
             )
           }
           style={{
@@ -301,6 +305,50 @@ const Settings = () => {
           />
         </TouchableOpacity>
 
+
+  {/* REFUND POLICY */}
+        <TouchableOpacity
+          onPress={() =>
+            openWebView(
+              'https://www.thenobiasmedia.com/refund-policy',
+              'Refund and Cancellation Policy'
+            )
+          }
+          style={{
+            height: 56,
+            borderRadius: 14,
+            backgroundColor: rowBackground,
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            marginBottom: 8,
+          }}
+        >
+          <Icon
+            name="cash-outline"
+            size={22}
+            color={iconColor}
+          />
+
+          <Text
+            style={{
+              flex: 1,
+              marginLeft: 14,
+              fontSize: 16,
+              fontWeight: '600',
+              color: textColor,
+            }}
+          >
+            Refund Policy
+          </Text>
+
+          <Icon
+            name="chevron-forward"
+            size={20}
+            color={secondaryColor}
+          />
+        </TouchableOpacity>
+
         {/* ACCOUNT */}
 
         <Text
@@ -322,6 +370,7 @@ const Settings = () => {
           onPress={() =>
             openWebView(
               'https://www.thenobiasmedia.com/delete-account',
+              'Delete Account'
             )
           }
           style={{
