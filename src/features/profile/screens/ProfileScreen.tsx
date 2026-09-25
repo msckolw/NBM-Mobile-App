@@ -184,6 +184,8 @@ const Profile = () => {
       </TouchableOpacity>
 
 
+   
+
       {token ? (
   <TouchableOpacity
     onPress={confirmLogout}
@@ -259,6 +261,43 @@ const Profile = () => {
     />
   </TouchableOpacity>
 )}
+
+<TouchableOpacity
+        onPress={() => navigation.navigate('Donation')}
+        style={{
+          height: 56,
+          borderRadius: 14,
+          backgroundColor: theme === 'light' ? '#F5F5F5' : '#1A1A1A',
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+          marginTop:10
+        }}
+      >
+        <Icon
+          name="settings-outline"
+          size={22}
+          color={theme === 'light' ? '#222' : '#fff'}
+        />
+  
+        <Text
+          style={{
+            flex: 1,
+            marginLeft: 14,
+            fontSize: 16,
+            fontWeight: '600',
+            color: theme === 'light' ? '#000' : '#fff',
+          }}
+        >
+          Donation
+        </Text>
+  
+        <Icon
+          name="chevron-forward"
+          size={20}
+          color={theme === 'light' ? '#777' : '#aaa'}
+        />
+      </TouchableOpacity>
   
     </View>
   </SafeAreaView>
