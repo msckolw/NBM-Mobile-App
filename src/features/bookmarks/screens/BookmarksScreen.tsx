@@ -5,9 +5,11 @@ import NewsCard from "../../news/components/NewsCard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../../context/ThemeContext";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import {useAppSelector} from '../../../store/hooks';
 
 export default function BookmarksScreen() {
-  const items = useBookmarkStore((s) => s.items);
+  // const items = useBookmarkStore((s) => s.items);
+  const items = useAppSelector(state => state.bookmarks.items);
   const navigation = useNavigation();
   const {theme} = useTheme();
 

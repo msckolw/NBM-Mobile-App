@@ -10,7 +10,7 @@ import { logout } from '../../auth/store/authslice';
 import { useCallback } from 'react';
 import { setAuth } from '../../auth/store/authslice';
 import { googleSignIn } from '../../../api/auth';
-import { googleLogin } from '../../../services/auth/googleAuth';
+import { googleLogin, googleLogout } from '../../../services/auth/googleAuth';
 import { log, setUserId } from '../../../services/monitoring/crashlytics';
 import { logEvent } from '../../../services/monitoring/analytics';
 import { devLog } from "../../../utils/devLog";
@@ -42,6 +42,7 @@ const Profile = () => {
       const result = await googleLogin();
   
       if (!result?.user?.email) {
+        // setShowAuthModal(false);
         return;
       }
   
@@ -111,7 +112,9 @@ const Profile = () => {
     );
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await googleLogout();
+  
     dispatch(logout());
   
     Alert.alert(

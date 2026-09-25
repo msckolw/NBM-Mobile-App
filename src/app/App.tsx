@@ -14,12 +14,13 @@ import {Provider} from 'react-redux';
 
 import RootNavigator from './navigation/RootNavigator';
 import ErrorBoundary from '../components/common/ErrorBoundary';
-import {store} from '../store';
+import {store, persistor} from '../store';
 import {configureGoogleSignIn} from '../services/auth/googleAuth';
 import {devLog} from '../utils/devLog';
 import {ThemeProvider, useTheme} from '../context/ThemeContext';
 import { initializeAnalyticsDeviceInfo } from '../services/monitoring/analytics';
 import { initializeNetworkMonitoring } from '../services/monitoring/crashlytics';
+import {PersistGate} from 'redux-persist/integration/react';
 
 if (__DEV__) {
   LogBox.ignoreAllLogs(false);
@@ -62,6 +63,7 @@ function AppContent() {
 
   return (
     <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <GestureHandlerRootView style={{flex: 1}}>
           <StatusBar
@@ -74,6 +76,7 @@ function AppContent() {
           </ErrorBoundary>
         </GestureHandlerRootView>
       </SafeAreaProvider>
+      </PersistGate>
     </Provider>
   );
 }

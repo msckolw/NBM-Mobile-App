@@ -12,7 +12,7 @@ import {
 import { useDetailedNews } from '../../news/hooks/DetailedNews';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useBookmarkStore } from '../../../store/BookmarkStore';
+// import { useBookmarkStore } from '../../../store/BookmarkStore';
 import { logEvent } from '../../../services/monitoring/analytics';
 import { timeAgo } from '../../../utils/timeAgo';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,6 +25,7 @@ import { AppDispatch, RootState } from '../../../store/index';
 import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
 import { devLog } from "../../../utils/devLog";
 import { useTheme } from '../../../context/ThemeContext';
+import {toggleBookmark} from '../../../features/bookmarks/store/bookmarkSlice';
 
 // TEMPORARILY COMMENTED OUT FOR BUILD - WILL RESTORE LATER
 // import { googleLogin } from "../../services/auth/googleAuth";
@@ -35,7 +36,7 @@ const ReadMore = (props: any) => {
   const { data, loading, error } = useDetailedNews(id);
   const {theme} = useTheme();
   const navigation = useNavigation();
-  const { toggleBookmark, isBookmarked } = useBookmarkStore();
+  // const { toggleBookmark, isBookmarked } = useBookmarkStore();
   const dispatch = useDispatch<AppDispatch>();
 
 const { token } = useSelector((state: RootState) => state.auth);
@@ -66,7 +67,10 @@ const [showAuthModal, setShowAuthModal] = useState(false);
   //   trackedRead.current = false;
   // }, [id]);
 
-  const bookmarked = !!(article && article._id) && isBookmarked(article._id);
+  // const bookmarked = !!(article && article._id) && isBookmarked(article._id);
+  const bookmarked = useSelector((state: RootState) =>
+  state.bookmarks.items.some(item => item._id === article?._id),
+);
 
 
 
@@ -128,7 +132,8 @@ const [showAuthModal, setShowAuthModal] = useState(false);
       return;
     }
   
-    toggleBookmark(article);
+    // toggleBookmark(article);
+    dispatch(toggleBookmark(article));
   
     logEvent(
       bookmarked ? 'article_unbookmarked' : 'article_bookmarked',
@@ -148,6 +153,7 @@ const [showAuthModal, setShowAuthModal] = useState(false);
       const result = await googleLogin();
   
       if (!result?.user?.email) {
+        setShowAuthModal(false);
         return;
       }
   
@@ -173,7 +179,8 @@ const [showAuthModal, setShowAuthModal] = useState(false);
         setShowAuthModal(false);
   
         // Save the article after successful authentication
-        toggleBookmark(article);
+        // toggleBookmark(article);
+        dispatch(toggleBookmark(article));
   
         logEvent('article_bookmarked', {
           article_id: article._id,
@@ -191,7 +198,7 @@ const [showAuthModal, setShowAuthModal] = useState(false);
     } catch (error) {
       console.error('Google login failed:', error);
     }
-  }, [article, dispatch, toggleBookmark]);
+  }, [article, dispatch]);
 
   if (!id) {
     return (

@@ -4,8 +4,11 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Input from "../../../components/common/Input";
 import {registerApi} from "../../../api/auth";
-import { useAuthStore } from "../../../store/AuthStore";
+// import { useAuthStore } from "../../../store/AuthStore";
 import { devLog } from "../../../utils/devLog";
+import {useDispatch} from 'react-redux';
+import type {AppDispatch} from '../../../store';
+import {setAuth} from '../store/authslice';
 
 
 
@@ -16,7 +19,8 @@ const schema = yup.object({
 });
 
 export default function RegisterScreen({ navigation }) {
-  const setAuth = useAuthStore((s) => s.setAuth);
+  // const setAuth = useAuthStore((s) => s.setAuth);
+  const dispatch = useDispatch<AppDispatch>();
 
   const {
     control,
@@ -34,7 +38,13 @@ const onSubmit = async (data) => {
 
     devLog("Register response:", res.data);
 
-    setAuth(res.data.user, res.data.token);
+    // setAuth(res.data.user, res.data.token);
+    dispatch(
+      setAuth({
+        user: res?.data?.user,
+        token: res?.data?.token,
+      }),
+    );
   } catch (error) {
     devLog("Register error:", error);
   }

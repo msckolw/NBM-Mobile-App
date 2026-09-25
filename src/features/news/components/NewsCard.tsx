@@ -11,9 +11,9 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector, useDispatch } from 'react-redux';
 
-import { useBookmarkStore } from '../../../store/BookmarkStore';
+// import { useBookmarkStore } from '../../../store/BookmarkStore';
 import { timeAgo } from '../../../utils/timeAgo';
-import type { RootState, AppDispatch } from '../../../store';
+import { type RootState, type AppDispatch, store } from '../../../store';
 import { setAuth } from '../../auth/store/authslice';
 import { googleSignIn } from '../../../api/auth';
 import { googleLogin } from '../../../services/auth/googleAuth';
@@ -21,6 +21,7 @@ import AuthRequiredModal from '../../../features/auth/components/AuthRequiredMod
 import { log, setUserId } from '../../../services/monitoring/crashlytics';
 import {logEvent} from '../../../services/monitoring/analytics';
 import { devLog } from "../../../utils/devLog";
+import {toggleBookmark} from '../../bookmarks/store/bookmarkSlice';
 
 
 type ArticleLike = {
@@ -61,7 +62,8 @@ const  NewsCard = ({
   origin,
 }: NewsCardProps) =>{
   const dispatch = useDispatch<AppDispatch>();
-  const { toggleBookmark, isBookmarked } = useBookmarkStore();
+  // const { toggleBookmark, isBookmarked } = useBookmarkStore();
+  
   const { user, token } = useSelector((state: RootState) => state.auth);
   // const { user, token, setAuth } = useAuthStore();
   const [pendingBookmark, setPendingBookmark] =
@@ -76,7 +78,10 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const useThisArticle: ArticleLike | undefined = isReadMore
     ? article
     : article?.item ?? article;
-  const bookmarked = !!useThisArticle?._id && isBookmarked(useThisArticle._id);
+    const bookmarked = useSelector((state: RootState) =>
+  state.bookmarks.items.some(item => item._id === useThisArticle?._id),
+);
+  // const bookmarked = !!useThisArticle?._id && isBookmarked(useThisArticle._id);
 
 
 
@@ -130,7 +135,8 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
     const wasBookmarked = bookmarked;
 
-    toggleBookmark(bookmarkArticle);
+    // toggleBookmark(bookmarkArticle);
+    dispatch(toggleBookmark(bookmarkArticle));
   
     logEvent(wasBookmarked ? 'bookmark_removed' : 'bookmark_added', {
       article_id: bookmarkArticle._id,
@@ -148,6 +154,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
       const result = await googleLogin();
   
       if (!result?.user?.email) {
+        setShowAuthModal(false);
         return;
       }
       log('Google authentication successful');
@@ -173,7 +180,14 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
         setShowAuthModal(false);
   
         if (pendingBookmark) {
-          toggleBookmark(pendingBookmark);
+          // toggleBookmark(pendingBookmark);
+          const alreadyBookmarked = store.getState().bookmarks.items.some(
+            item => item._id === pendingBookmark._id,
+          );
+          
+          if (!alreadyBookmarked) {
+            dispatch(toggleBookmark(pendingBookmark));
+          }
 
   logEvent('bookmark_added', {
     article_id: pendingBookmark._id,
@@ -198,7 +212,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
       });
       console.error('Google login failed:', error);
     }
-  }, [dispatch, pendingBookmark, toggleBookmark]);
+  }, [dispatch, pendingBookmark, origin]);
   
 
   return (

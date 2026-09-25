@@ -30,7 +30,7 @@ export const googleLogin = async () => {
     const idToken = userInfo.data?.idToken;
 
     if (!idToken) {
-      console.error('Google Sign-In succeeded but no ID token was returned.');
+      devLog('Google Sign-In cancelled or no ID token was returned');
       return null;
     }
 
@@ -48,5 +48,14 @@ export const googleLogin = async () => {
 
     console.error('Google Sign-In failed:', error);
     throw error;
+  }
+};
+
+
+export const googleLogout = async () => {
+  try {
+    await GoogleSignin.signOut();
+  } catch (error) {
+    console.error('Google Sign-Out failed:', error);
   }
 };
