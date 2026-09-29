@@ -7,17 +7,30 @@ buildscript {
         ndkVersion = "27.1.12297006"
         kotlinVersion = "2.2.0"
     }
+
     repositories {
         google()
         mavenCentral()
     }
-dependencies {
-    classpath("com.android.tools.build:gradle")
-    classpath("com.facebook.react:react-native-gradle-plugin")
-    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
-    classpath("com.google.gms:google-services:4.5.0")
-    classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.8")
+
+    dependencies {
+        classpath("com.android.tools.build:gradle")
+        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("com.google.gms:google-services:4.5.0")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.8")
+    }
 }
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+
+        maven {
+            url "https://phonepe.mycloudrepo.io/public/repositories/phonepe-intentsdk-android"
+        }
+    }
 }
 
 apply plugin: "com.facebook.react.rootproject"
