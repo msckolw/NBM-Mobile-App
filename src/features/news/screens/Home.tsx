@@ -11,6 +11,7 @@ import SkeletonCard from '../components/SkeletonCard';
 import { logEvent } from '../../../services/monitoring/analytics';
 import { AnalyticsEvents } from '../../../services/monitoring/analyticsEvents';
 import { devLog } from "../../../utils/devLog";
+import FastImage from '@d11/react-native-fast-image';
 
 
 
@@ -48,7 +49,7 @@ const Home = () => {
   
  
 
-  const safeArticles = (articles || []).filter(item => item && item?._id);
+  // const safeArticles = (articles || []).filter(item => item && item?._id);
 
 
   const renderSkeletonPlaceholder = useCallback(
@@ -58,12 +59,36 @@ const Home = () => {
 
 
   useEffect(() => {
+    if (!articles.length) {
+      return;
+    }
+  
+    const imageUrls = articles
+      .slice(0, 5)
+      .map(article => article?.imageUrl)
+      .filter(Boolean);
+  
+    imageUrls.forEach(url => {
+      FastImage.preload([
+        {
+          uri: url,
+          priority: FastImage.priority.high,
+        },
+      ]);
+    });
+  }, [articles]);
+
+
+  useEffect(() => {
     devLog(
       `Home : Mounted | +${(
         Date.now() - globalThis.__APP_START_TIME__
       ).toFixed(0)}ms`,
     );
   }, []);
+
+
+
 
 
 
@@ -140,7 +165,7 @@ const Home = () => {
     );
   }
 
-  if (!loading && error && safeArticles.length === 0) {
+  if (!loading && error && articles.length === 0) {
     return (
       <SafeAreaView
         edges={['top']}
@@ -240,7 +265,8 @@ const Home = () => {
 
       <FlatList
         showsVerticalScrollIndicator={false}
-        data={safeArticles}
+        // data={safeArticles}
+        data={articles}
         keyExtractor={item => item?._id.toString()}
         renderItem={renderItem}
         onEndReached={loadMore}

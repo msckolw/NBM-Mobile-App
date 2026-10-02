@@ -77,7 +77,7 @@ const useNews = () => {
         );
   
         // Retry only the initial news request.
-        const maxRetries = 2;
+        const maxRetries = 1;
   
         if (pageNumber === 1 && retryCount < maxRetries) {
           const retryDelay = 1000 * Math.pow(2, retryCount);

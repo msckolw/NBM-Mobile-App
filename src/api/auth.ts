@@ -25,6 +25,9 @@ export const googleSignIn = async ({
 }: {
   email: string;
   name: string;
+  googleId: string,
+  picture: string,
+  idToken: string,
 }) => {
   const response = await api.post('/auth/googleSignIn', {
     email,

@@ -22,6 +22,7 @@ import { log, setUserId } from '../../../services/monitoring/crashlytics';
 import {logEvent} from '../../../services/monitoring/analytics';
 import { devLog } from "../../../utils/devLog";
 import {toggleBookmark} from '../../bookmarks/store/bookmarkSlice';
+import FastImage from '@d11/react-native-fast-image';
 
 
 type ArticleLike = {
@@ -71,6 +72,7 @@ const  NewsCard = ({
 
 const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
 
   const isDark = theme === 'dark';
   const isAuthenticated = !!token;
@@ -158,10 +160,17 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
         return;
       }
       log('Google authentication successful');
-      const response = await googleSignIn({
+      const userLoginPayload = {
         email: result.user.email,
         name: result.user.name ?? '',
-      });
+        googleId: result.user.id,
+        picture: result.user.photo ?? '',
+        idToken: result?.idToken,
+      }
+      devLog('GoogleResult', result);
+      devLog('GoogleuserLoginPayload', userLoginPayload);
+
+      const response = await googleSignIn(userLoginPayload);
   
       devLog('Backend Google login:', response);
   
@@ -210,6 +219,8 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
       logEvent('login_failed', {
         method: 'google',
       });
+      setShowAuthModal(false)
+      Alert.alert("Something Went Wrong, Please try again")
       console.error('Google login failed:', error);
     }
   }, [dispatch, pendingBookmark, origin]);
@@ -223,7 +234,31 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
       ]}
     >
       {/* origin = "ReadMore" */}
-      <Image source={{ uri: useThisArticle.imageUrl }} style={styles.image} />
+      <View style={styles.imageContainer}>
+  {imageLoading && (
+    <View
+      style={[
+        styles.imagePlaceholder,
+        {
+          backgroundColor: isDark ? '#2A2A2A' : '#E9E9E9',
+        },
+      ]}
+    />
+  )}
+
+  <FastImage
+    source={{
+      uri: useThisArticle.imageUrl,
+      priority: FastImage.priority.normal,
+      cache: FastImage.cacheControl.web,
+    }}
+    style={styles.image}
+    resizeMode={FastImage.resizeMode.cover}
+    onLoadStart={() => setImageLoading(true)}
+    onLoad={() => setImageLoading(false)}
+    onError={() => setImageLoading(false)}
+  />
+</View>
 
       <Text
   style={[
@@ -396,5 +431,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  imageContainer: {
+    width: '100%',
+    height: 220,
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  
+  imagePlaceholder: {
+    ...StyleSheet.absoluteFillObject,
   },
 });
