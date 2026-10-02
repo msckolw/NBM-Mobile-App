@@ -31,7 +31,7 @@ export const donationSchema = z.object({
       'Please enter a valid 10-digit Indian mobile number.',
     ),
 
-  method: z.enum(['all', 'upi', 'card']),
+  method: z.enum(['upi', 'card', 'netbanking']),
 });
 
 export type DonationFormValues = z.infer<typeof donationSchema>;

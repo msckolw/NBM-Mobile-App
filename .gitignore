@@ -78,3 +78,7 @@ yarn-error.log
 # Local React Native migration backups
 migration-backups/
 ios/GoogleService-Info.plist
+
+
+# Android release signing keystore
+android/app/nbm-release-key.jks

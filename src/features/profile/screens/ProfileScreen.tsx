@@ -262,7 +262,7 @@ const Profile = () => {
   </TouchableOpacity>
 )}
 
-<TouchableOpacity
+{/* <TouchableOpacity
         onPress={() => navigation.navigate('Donation')}
         style={{
           height: 56,
@@ -297,7 +297,7 @@ const Profile = () => {
           size={20}
           color={theme === 'light' ? '#777' : '#aaa'}
         />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
   
     </View>
   </SafeAreaView>

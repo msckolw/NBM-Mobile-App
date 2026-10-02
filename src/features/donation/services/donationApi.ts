@@ -1,35 +1,46 @@
 import paymentClient from './paymentClient';
-import type {
-  DonationFormData,
-  DonationTransaction,
-} from '../types/donation';
+import type {DonationFormData} from '../types/donation';
 
 export type CreateDonationResponse = {
-  txnid: string;
-  action?: string;
-  fields?: Record<string, string>;
+  id: string;
+};
+
+export type DonationCheckoutResponse = {
+  checkout: {
+    fields: Record<string, string>;
+  };
+};
+
+export type DonationStatusResponse = {
+  status: 'success' | 'pending' | 'failed';
 };
 
 export const createDonation = async (
-  payload: DonationFormData,
+  payload: DonationFormData & {
+    platform: 'app';
+    idempotencyKey: string;
+  },
 ): Promise<CreateDonationResponse> => {
-  const response = await paymentClient.post('/payments/create', payload);
+  const response = await paymentClient.post('/donations', payload);
+  return response.data;
+};
+
+export const getDonationCheckout = async (
+  donationId: string,
+): Promise<DonationCheckoutResponse> => {
+  const response = await paymentClient.post(
+    `/donations/${donationId}/checkout`,
+  );
 
   return response.data;
 };
 
 export const getDonationStatus = async (
-  txnid: string,
-): Promise<DonationTransaction> => {
-  const response = await paymentClient.get(`/payments/${txnid}`);
-
-  return response.data;
-};
-
-export const verifyDonation = async (
-  txnid: string,
-): Promise<DonationTransaction> => {
-  const response = await paymentClient.post(`/payments/${txnid}/verify`);
+  donationId: string,
+): Promise<DonationStatusResponse> => {
+  const response = await paymentClient.get(
+    `/donations/${donationId}/status`,
+  );
 
   return response.data;
 };

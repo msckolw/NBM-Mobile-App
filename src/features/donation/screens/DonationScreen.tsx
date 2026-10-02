@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -12,15 +12,16 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-
 import Input from '../../../components/common/Input';
 import {useTheme} from '../../../context/ThemeContext';
-
 import {donationSchema} from '../schemas/donationSchema';
 import type {DonationFormValues} from '../schemas/donationSchema';
 import type {DonationPaymentMethod} from '../types/donation';
-import {createDonation} from '../services/donationApi';
-import {savePendingDonationTxn} from '../services/donationStorage';
+import {createDonation, getDonationCheckout} from '../services/donationApi';
+import {savePendingDonationId} from '../services/donationStorage';
+import uuid from 'react-native-uuid';
+import { initializePayUListeners, startPayUPayment } from '../services/payuService';
+
 
 const PRESET_AMOUNTS = [50, 100, 200, 500, 1000];
 
@@ -28,9 +29,9 @@ const PAYMENT_METHODS: {
   label: string;
   value: DonationPaymentMethod;
 }[] = [
-  {label: 'All Methods', value: 'all'},
-  {label: 'UPI', value: 'upi'},
-  {label: 'Card', value: 'card'},
+  {value: 'upi', label: 'UPI'},
+  {value: 'card', label: 'Card'},
+  {value: 'netbanking', label: 'Net Banking'},
 ];
 
 const DonationScreen = () => {
@@ -63,30 +64,50 @@ const DonationScreen = () => {
     ? 'UPI / Card'
     : PAYMENT_METHODS.find(item => item.value === method)?.label;
 
-  const handleDonate = async (data: DonationFormValues) => {
-    try {
-      setIsSubmitting(true);
-  
-      const response = await createDonation(data);
-      await savePendingDonationTxn(response.txnid);
 
-      console.log('Donation created:', response);
-  
-      Alert.alert(
-        'Donation Created',
-        `Transaction ID: ${response.txnid}`,
-      );
-    } catch (error) {
-      console.error('Donation creation failed:', error);
-  
-      Alert.alert(
-        'Donation Failed',
-        'Unable to create the donation. Please try again.',
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    useEffect(() => {
+      console.log("useEffect running")
+      return initializePayUListeners();
+    }, []);
+
+    const handleDonate = async (data: DonationFormValues) => {
+      try {
+        setIsSubmitting(true);
+    
+        const idempotencyKey = uuid.v4() as string;
+    
+        const response = await createDonation({
+          ...data,
+          platform: 'app',
+          idempotencyKey,
+        });
+    
+        await savePendingDonationId(response.id);
+    
+        const checkoutResponse = await getDonationCheckout(response.id);
+    
+        console.log('PayU SURL:', checkoutResponse.checkout.fields.surl);
+console.log('PayU FURL:', checkoutResponse.checkout.fields.furl);
+    
+        await startPayUPayment(checkoutResponse.checkout.fields);
+    
+        console.log('Donation created:', response);
+    
+        // Alert.alert(
+        //   'Donation Created',
+        //   `Transaction ID: ${response.id}`,
+        // );
+      } catch (error) {
+        console.error('Donation creation failed:', error);
+    
+        Alert.alert(
+          'Donation Failed',
+          'Unable to create the donation. Please try again.',
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
 
   return (
     <SafeAreaView

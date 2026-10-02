@@ -96,6 +96,12 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+    storeFile file('nbm-release-key.jks')
+    storePassword 'NBM_Keystore_2026'
+    keyAlias 'nbm-release'
+    keyPassword 'NBM_Keystore_2026'
+}
     }
     buildTypes {
         debug {
@@ -104,7 +110,8 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }

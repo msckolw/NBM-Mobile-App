@@ -1,29 +1,84 @@
-export type PayUPaymentRequest = {
-    txnid: string;
-    amount: string;
-    firstname: string;
-    email: string;
-    phone: string;
+import PayUBizSdk from 'payu-non-seam-less-react';
+import { DeviceEventEmitter } from 'react-native';
+
+export type PayUPaymentParams = {
+  key: string;
+  txnid: string;
+  amount: string;
+  productinfo: string;
+  firstname: string;
+  email: string;
+  phone: string;
+  surl: string;
+  furl: string;
+  hash: string;
+  [key: string]: string;
+};
+
+export const startPayUPayment = (
+  paymentParams: PayUPaymentParams,
+) => {
+  const paymentObject = {
+    payUPaymentParams: {
+      ...paymentParams,
+      android_surl: paymentParams.surl,
+      android_furl: paymentParams.furl,
+    },
   };
-  
-  export type PayUPaymentResult =
-    | {
-        status: 'success';
-        txnid: string;
+
+  PayUBizSdk.openCheckoutScreen(paymentObject);
+};
+
+
+export const initializePayUListeners = () => {
+  const subscriptions = [
+    DeviceEventEmitter.addListener('generateHash', async data => {
+      console.log('PayU generateHash:', data);
+    
+      try {
+        const response = await PayUBizSdk.makeHttpRequest(
+          'https://thenbm-329287861933.asia-south1.run.app/api/payments/payu/hash',
+          'POST',
+          JSON.stringify(data),
+          {
+            'Content-Type': 'application/json',
+          },
+        );
+    
+        console.log('PayU hash response:', response);
+    
+        const parsedResponse =
+          typeof response === 'string'
+            ? JSON.parse(response)
+            : response;
+    
+        PayUBizSdk.hashGenerated({
+          [data.hashName]: parsedResponse[data.hashName],
+        });
+      } catch (error) {
+        console.error('PayU hash generation failed:', error);
       }
-    | {
-        status: 'failed';
-        txnid: string;
-        message?: string;
-      }
-    | {
-        status: 'cancelled';
-        txnid: string;
-      };
-  
-  export const startPayUPayment = async (
-    request: PayUPaymentRequest,
-  ): Promise<PayUPaymentResult> => {
-    // Native PayU SDK integration will be implemented here.
-    throw new Error('PayU payment integration is not configured yet.');
+    }),
+
+    DeviceEventEmitter.addListener('onPaymentSuccess', data => {
+      console.log('PayU success:', data);
+    }),
+
+    DeviceEventEmitter.addListener('onPaymentFailure', data => {
+      console.log('PayU failure:', data);
+    }),
+
+    DeviceEventEmitter.addListener('onPaymentCancel', data => {
+      console.log('PayU cancelled:', data);
+    }),
+
+    DeviceEventEmitter.addListener('onError', data => {
+      console.log('PayU error:', data);
+    }),
+  ];
+
+  return () => {
+    subscriptions.forEach(subscription => subscription.remove());
   };
+};
+

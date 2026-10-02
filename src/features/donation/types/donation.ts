@@ -1,4 +1,4 @@
-export type DonationPaymentMethod = 'all' | 'upi' | 'card';
+export type DonationPaymentMethod = 'upi' | 'card' | 'netbanking';
 
 export type DonationStatus = 'idle' | 'creating' | 'processing' | 'pending' | 'success' | 'failed';
 
