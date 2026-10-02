@@ -18,100 +18,85 @@ const useNews = () => {
   const requestInFlight = useRef(false);
   console.log("requestInFlight", requestInFlight)
 
-  const fetchNews = useCallback(
-    async (pageNumber: number, retryCount = 0) => {
-      if (requestInFlight.current) {
-        return;
-      }
+  const fetchNews = useCallback(async (pageNumber: number) => {
+    if (requestInFlight.current) return;
   
-      requestInFlight.current = true;
+    requestInFlight.current = true;
+    setError(null);
   
-      // Measure TTI
-      const requestStart = Date.now();
+    const maxRetries = pageNumber === 1 ? 1 : 0;
   
-      devLog(
-        `Request started | page=${pageNumber} | retry=${retryCount} | +${(
-          requestStart - globalThis.__APP_START_TIME__
-        ).toFixed(0)}ms`,
-      );
-  
-      try {
-        setError(null);
-  
-        const res = await getNews(pageNumber);
-  
-        const responseTime = Date.now();
+    try {
+      for (let retryCount = 0; retryCount <= maxRetries; retryCount++) {
+        const requestStart = Date.now();
   
         devLog(
-          `News API response | +${(
-            responseTime - globalThis.__APP_START_TIME__
-          ).toFixed(0)}ms | API=${(
-            responseTime - requestStart
+          `Request started | page=${pageNumber} | retry=${retryCount} | +${(
+            requestStart - globalThis.__APP_START_TIME__
           ).toFixed(0)}ms`,
         );
   
-        devLog('NEWS API RESPONSE:', res);
+        try {
+          const res = await getNews(pageNumber);
   
-        const sanitized = (res?.articles || []).filter(
-          item => item && item?._id,
-        );
-  
-        if (pageNumber === 1) {
-          setArticles(sanitized);
-        } else {
-          setArticles(prev => [...prev, ...sanitized]);
-        }
-  
-        devLog(
-          `News Articles state queued | count=${sanitized.length} | +${(
-            Date.now() - globalThis.__APP_START_TIME__
-          ).toFixed(0)}ms`,
-        );
-  
-        setPage(pageNumber);
-        setTotalPages(res?.totalPages || 1);
-      } catch (error) {
-        devLog(
-          `Error fetching news | page=${pageNumber} | retry=${retryCount}`,
-          error,
-        );
-  
-        // Retry only the initial news request.
-        const maxRetries = 1;
-  
-        if (pageNumber === 1 && retryCount < maxRetries) {
-          const retryDelay = 1000 * Math.pow(2, retryCount);
+          const responseTime = Date.now();
   
           devLog(
-            `Retrying news request | attempt=${retryCount + 1}/${maxRetries} | delay=${retryDelay}ms`,
+            `News API response | +${(
+              responseTime - globalThis.__APP_START_TIME__
+            ).toFixed(0)}ms | API=${(responseTime - requestStart).toFixed(0)}ms`,
           );
   
-          requestInFlight.current = false;
+          devLog('NEWS API RESPONSE:', res);
   
-          await new Promise(resolve =>
-            setTimeout(resolve, retryDelay),
+          const sanitized = (res?.articles || []).filter(
+            item => item && item?._id,
           );
   
-          return fetchNews(pageNumber, retryCount + 1);
+          if (pageNumber === 1) {
+            setArticles(sanitized);
+          } else {
+            setArticles(prev => [...prev, ...sanitized]);
+          }
+  
+          setPage(pageNumber);
+          setTotalPages(res?.totalPages || 1);
+  
+          return;
+        } catch (error) {
+          devLog(
+            `Error fetching news | page=${pageNumber} | retry=${retryCount}`,
+            error,
+          );
+  
+          if (retryCount < maxRetries) {
+            const retryDelay = 1000 * Math.pow(2, retryCount);
+  
+            devLog(
+              `Retrying news request | attempt=${retryCount + 1}/${maxRetries} | delay=${retryDelay}ms`,
+            );
+  
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            continue;
+          }
+  
+          setError('Failed to load news');
+  
+          recordError(
+            error instanceof Error
+              ? error
+              : new Error('Unknown article fetch error'),
+            'Failed to fetch articles',
+          );
         }
-  
-        setError('Failed to load news');
-  
-        recordError(
-          error instanceof Error
-            ? error
-            : new Error('Unknown article fetch error'),
-          'Failed to fetch articles',
-        );
-      } finally {
-        requestInFlight.current = false;
-        setLoading(false);
-        setLoadingMore(false);
-        setRefreshing(false);
       }
-    },
-    [],
-  );
+    } finally {
+      requestInFlight.current = false;
+      setLoadingMore(false);
+      setRefreshing(false);
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     console.log('News is fetching');

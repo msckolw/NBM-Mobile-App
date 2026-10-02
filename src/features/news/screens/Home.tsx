@@ -5,7 +5,7 @@ import {useTheme} from '../../../context/ThemeContext';
 import TopicTabs from '../components/TopicTabs';
 import { useNavigation } from '@react-navigation/native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import useNews from '../hooks/useNews';
 import SkeletonCard from '../components/SkeletonCard';
 import { logEvent } from '../../../services/monitoring/analytics';
@@ -23,6 +23,7 @@ const Home = () => {
   );
   // const insets = useSafeAreaInsets();
   const {theme, isThemeReady} = useTheme();
+  const insets = useSafeAreaInsets();
   const [selectedTopic, setSelectedTopic] = useState('All');
   const firstArticleRendered = useRef(false);
 
@@ -119,15 +120,7 @@ const Home = () => {
   
 
   const renderItem = useCallback(({item}: {item: any})=>{
-    if (!firstArticleRendered.current) {
-      firstArticleRendered.current = true;
-    
-      // devLog(
-      //   `TTI : First NewsCard rendered | +${(
-      //     Date.now() - globalThis.__APP_START_TIME__
-      //   ).toFixed(0)}ms`,
-      // );
-    }
+
     return (
       <NewsCard
       article={item}
@@ -143,27 +136,29 @@ const Home = () => {
 
 
 
-  if (loading && page === 1) {
-    return (
-      <SafeAreaView
-      edges={['top']}
-      style={{
-        flex: 1,
-        backgroundColor: theme === 'light' ? '#fff' : '#000',
-      }}
-    >
+  // if (loading && page === 1) {
+  //   return (
+  //     <SafeAreaView
+  //     edges={['top']}
+  //     style={{
+  //       flex: 1,
+  //       backgroundColor: theme === 'light' ? '#fff' : '#000',
+  //     }}
+  //   >
   
-        <TopicTabs theme={theme} selected={selectedTopic} onPress={() => {}} />
+  //       <TopicTabs theme={theme} selected={selectedTopic} onPress={() => {}} />
 
-        <FlatList
-          data={[1, 2, 3, 4, 5]}
-          keyExtractor={item => item.toString()}
-          renderItem={renderSkeletonPlaceholder}
-          showsVerticalScrollIndicator={false}
-        />
-      </SafeAreaView>
-    );
-  }
+  //       <FlatList
+  //         data={[1, 2, 3, 4, 5]}
+  //         keyExtractor={item => item.toString()}
+  //         renderItem={renderSkeletonPlaceholder}
+  //         showsVerticalScrollIndicator={false}
+  //       />
+  //     </SafeAreaView>
+  //   );
+  // }
+
+  
 
   if (!loading && error && articles.length === 0) {
     return (
@@ -233,13 +228,13 @@ const Home = () => {
   // toggleBookmark(articles);
 
   return (
-    <SafeAreaView
-      edges={['top']}
-      style={{
-        flex: 1,
-        backgroundColor: theme === 'light' ? '#fff' : '#000',
-      }}
-    >
+    <View
+    style={{
+      flex: 1,
+      paddingTop: insets.top,
+      backgroundColor: theme === 'light' ? '#fff' : '#000',
+    }}
+  >
       {/* Header must NOT use flex */}
       <TopicTabs
   selected={selectedTopic}
@@ -263,24 +258,26 @@ const Home = () => {
 
 
 
-      <FlatList
-        showsVerticalScrollIndicator={false}
-        // data={safeArticles}
-        data={articles}
-        keyExtractor={item => item?._id.toString()}
-        renderItem={renderItem}
-        onEndReached={loadMore}
-        onRefresh={onRefresh}
-        refreshing={refreshing}
-        initialNumToRender={5}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        removeClippedSubviews
-        // contentContainerStyle={{
-        //   paddingBottom: insets.bottom + 70,
-        // }}
-      />
-    </SafeAreaView>
+<FlatList
+  showsVerticalScrollIndicator={false}
+  data={loading && page === 1 ? [1, 2, 3, 4, 5] : articles}
+  keyExtractor={(item, index) =>
+    loading && page === 1 ? `skeleton-${index}` : item._id.toString()
+  }
+  renderItem={
+    loading && page === 1
+      ? renderSkeletonPlaceholder
+      : renderItem
+  }
+  onEndReached={loading ? undefined : loadMore}
+  onRefresh={onRefresh}
+  refreshing={refreshing}
+  initialNumToRender={5}
+  maxToRenderPerBatch={10}
+  windowSize={5}
+  // removeClippedSubviews
+/>
+    </View>
   );
 };
 
