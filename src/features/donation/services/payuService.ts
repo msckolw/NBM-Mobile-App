@@ -36,14 +36,29 @@ export const initializePayUListeners = () => {
       console.log('PayU generateHash:', data);
     
       try {
-        const response = await PayUBizSdk.makeHttpRequest(
-          'https://thenbm-329287861933.asia-south1.run.app/api/payments/payu/hash',
-          'POST',
-          JSON.stringify(data),
-          {
-            'Content-Type': 'application/json',
-          },
-        );
+        // const hashString =
+        // data.hashName === 'get_sdk_configuration' ||
+        // data.hashName === 'get_all_offer_details' ||
+        // data.hashName === 'quickPayEvent'
+        //   ? `0BPUp0|${data.hashName}|default|`
+        //   : data.hashString;
+
+
+          const hashRequest = {
+            hashName: data.hashName,
+            hashString: data.hashString,
+          };
+          
+          console.log('PayU hash request:', hashRequest);
+          
+          const response = await PayUBizSdk.makeHttpRequest(
+            'https://thenbm-329287861933.asia-south1.run.app/api/payments/payu/hash',
+            'POST',
+            JSON.stringify(hashRequest),
+            {
+              'Content-Type': 'application/json',
+            },
+          );
     
         console.log('PayU hash response:', response);
     
@@ -52,19 +67,19 @@ export const initializePayUListeners = () => {
             ? JSON.parse(response)
             : response;
     
-            const hash = parsedResponse?.[data.hashName];
-
-            if (!hash) {
-              console.error(
-                `PayU hash missing for "${data.hashName}"`,
-                parsedResponse,
-              );
-              return;
-            }
-            
-            PayUBizSdk.hashGenerated({
-              [data.hashName]: hash,
-            });
+        const hash = parsedResponse?.[data.hashName];
+    
+        if (!hash) {
+          console.error(
+            `PayU hash missing for "${data.hashName}"`,
+            parsedResponse,
+          );
+          return;
+        }
+    
+        PayUBizSdk.hashGenerated({
+          [data.hashName]: hash,
+        });
       } catch (error) {
         console.error('PayU hash generation failed:', error);
       }
