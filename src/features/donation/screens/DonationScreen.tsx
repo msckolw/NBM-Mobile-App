@@ -22,6 +22,7 @@ import {createDonation, getDonationCheckout} from '../services/donationApi';
 import {savePendingDonationId} from '../services/donationStorage';
 import uuid from 'react-native-uuid';
 import { initializePayUListeners, startPayUPayment } from '../services/payuService';
+import { showToast } from '../../../services/ui/toastService';
 
 
 const PRESET_AMOUNTS = [50, 100, 200, 500, 1000];
@@ -92,18 +93,13 @@ console.log('PayU FURL:', checkoutResponse.checkout.fields.furl);
         await startPayUPayment(checkoutResponse.checkout.fields);
     
         console.log('Donation created:', response);
-    
-        // Alert.alert(
-        //   'Donation Created',
-        //   `Transaction ID: ${response.id}`,
-        // );
       } catch (error) {
         console.error('Donation creation failed:', error);
-    
-        Alert.alert(
-          'Donation Failed',
-          'Unable to create the donation. Please try again.',
-        );
+        showToast({
+          type: 'error',
+          title: 'Donation Failed',
+          message: 'Unable to create the donation. Please try again.'
+        })
       } finally {
         setIsSubmitting(false);
       }

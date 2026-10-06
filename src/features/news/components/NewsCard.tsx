@@ -24,6 +24,7 @@ import { devLog } from "../../../utils/devLog";
 import {toggleBookmark} from '../../bookmarks/store/bookmarkSlice';
 import FastImage from '@d11/react-native-fast-image';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { showToast } from '../../../services/ui/toastService';
 
 
 type ArticleLike = {
@@ -207,10 +208,11 @@ const response = await signInToBackendWithGoogle({
           setPendingBookmark(null);
   
           setTimeout(() => {
-            Alert.alert(
-              'Login successful',
-              'Your article has been saved to bookmarks.',
-            );
+            showToast({
+              type: 'success',
+              title: 'Login successful',
+              message: 'Your article has been saved to bookmarks.'
+            })
           }, 300);
         }
         log('User session established');
@@ -221,7 +223,10 @@ const response = await signInToBackendWithGoogle({
         method: 'google',
       });
       setShowAuthModal(false)
-      Alert.alert("Something Went Wrong, Please try again")
+      showToast({
+        type: 'error',
+        title: "Something Went Wrong, Please try again",
+      })
       console.error('Google login failed:', error);
     }
   }, [dispatch, pendingBookmark, origin]);

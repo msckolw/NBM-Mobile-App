@@ -26,6 +26,7 @@ import AuthRequiredModal from '../../../features/auth/components/AuthRequiredMod
 import { devLog } from "../../../utils/devLog";
 import { useTheme } from '../../../context/ThemeContext';
 import {toggleBookmark} from '../../../features/bookmarks/store/bookmarkSlice';
+import { showToast } from '../../../services/ui/toastService';
 
 // TEMPORARILY COMMENTED OUT FOR BUILD - WILL RESTORE LATER
 // import { signInWithGoogle } from "../../services/auth/googleAuth";
@@ -187,10 +188,13 @@ const [showAuthModal, setShowAuthModal] = useState(false);
   
         log('User session established');
   
-        Alert.alert(
-          'Login successful',
-          'Your article has been saved to bookmarks.',
-        );
+        showToast({
+          type: 'success',
+          title: 'Login successful',
+          message: 'Your article has been saved to bookmarks.'
+        })
+  
+
       }
     } catch (error) {
       console.error('Google login failed:', error);

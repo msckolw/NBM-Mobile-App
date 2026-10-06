@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import useAuthStore from '../../../store/AuthStore';
 import { useNavigation } from '@react-navigation/native';
@@ -15,6 +15,8 @@ import { log, setUserId } from '../../../services/monitoring/crashlytics';
 import { logEvent } from '../../../services/monitoring/analytics';
 import { devLog } from "../../../utils/devLog";
 import { useTheme } from '../../../context/ThemeContext';
+import { showToast } from '../../../services/ui/toastService';
+import ConfirmationModal from '../../../components/common/ConfirmationModal';
 
 
 
@@ -29,6 +31,7 @@ const Profile = () => {
   const navigation = useNavigation()
   
 
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
 
   const handleGoogleLogin = async ()=> {
@@ -70,11 +73,11 @@ const Profile = () => {
         );
   
         setUserId(String(response.user.id));
-  
-        Alert.alert(
-          'Login successful',
-          'You have been successfully logged in.',
-        );
+        showToast({
+          type: 'success',
+          title: 'Login successful',
+          message: 'You have been successfully logged in.'
+        })
   
         log('User session established');
       }
@@ -84,11 +87,11 @@ const Profile = () => {
       });
   
       console.error('Google login failed:', error);
-  
-      Alert.alert(
-        'Login failed',
-        'Unable to login with Google. Please try again.',
-      );
+      showToast({
+        type: 'error',
+        title: 'Login failed',
+        message: 'Unable to login with Google. Please try again.'
+      })
     }
   }
   ;
@@ -96,32 +99,19 @@ const Profile = () => {
 
 
   const confirmLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: handleLogout,
-        },
-      ],
-    );
+    setShowLogoutModal(true);
   };
 
   const handleLogout = async () => {
     await googleLogout();
   
     dispatch(logout());
-  
-    Alert.alert(
-      'Logged out',
-      'You have been successfully logged out.',
-    );
+    showToast({
+      type: 'success',
+      title: 'Logged out',
+      message: 'You have been successfully logged out.'
+    })
+    
   };
 
 
@@ -299,7 +289,19 @@ const Profile = () => {
           color={theme === 'light' ? '#777' : '#aaa'}
         />
       </TouchableOpacity> */}
-  
+  <ConfirmationModal
+  visible={showLogoutModal}
+  title="Logout"
+  message="Are you sure you want to logout?"
+  confirmText="Logout"
+  cancelText="Cancel"
+  destructive
+  onCancel={() => setShowLogoutModal(false)}
+  onConfirm={() => {
+    setShowLogoutModal(false);
+    handleLogout();
+  }}
+/>
     </View>
   </SafeAreaView>
   );

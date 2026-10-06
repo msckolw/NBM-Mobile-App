@@ -5,12 +5,11 @@ import * as yup from "yup";
 import Input from "../../../components/common/Input";
 import { loginApi } from "../../../api/auth";
 // import { useAuthStore } from "../../../store/AuthStore";
-import Toast from "react-native-toast-message";
-import RegisterScreen from "./RegisterScreen";
 import { devLog } from "../../../utils/devLog";
 import {useDispatch} from 'react-redux';
 import type {AppDispatch} from '../../../store';
 import {setAuth} from '../store/authslice';
+import { showToast } from "../../../services/ui/toastService";
 
 
 const schema = yup.object({
@@ -29,7 +28,11 @@ export default function LoginScreen({ navigation }) {
   const onSubmit = async (data) => {
     try {
       const res = await loginApi(data.email, data.password);
-      Alert.alert("LoginSuccessfull")
+      showToast({
+        type: 'success',
+        title: 'Login successful',
+        message: 'Welcome back!',
+      });
       devLog("res?.data?.token", res?.data?.token)
       dispatch(
         setAuth({
@@ -40,9 +43,9 @@ export default function LoginScreen({ navigation }) {
       // setAuth(res?.data?.user, res?.data?.token);
     } catch (err) {
       devLog("loginFailed error:", err)
-        Toast.show({
-            type: "error",
-            text1: "Login failed"
+          showToast({
+            type: 'error',
+            title: "Login failed",
           });
     }
   };
