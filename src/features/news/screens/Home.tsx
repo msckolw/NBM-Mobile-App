@@ -39,6 +39,8 @@ const Home = () => {
     loadMore,
     page,
   } = useNews();
+
+  console.log("Error Fetching nwes", error)
   
 
   devLog(
@@ -179,27 +181,29 @@ const Home = () => {
     paddingHorizontal: 24,
   }}
 >
-  <Text
-    style={{
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme === 'light' ? '#111' : '#fff',
-      marginBottom: 8,
-    }}
-  >
-    Unable to load news
-  </Text>
+<Text
+  style={{
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme === 'light' ? '#111' : '#fff',
+    marginBottom: 8,
+  }}>
+  {error === 'NO_NETWORK'
+    ? 'No internet connection'
+    : 'Unable to load news'}
+</Text>
 
-  <Text
-    style={{
-      fontSize: 14,
-      textAlign: 'center',
-      color: theme === 'light' ? '#666' : '#aaa',
-      marginBottom: 20,
-    }}
-  >
-    Something went wrong while loading the latest news.
-  </Text>
+<Text
+  style={{
+    fontSize: 15,
+    color: theme === 'light' ? '#666' : '#aaa',
+    textAlign: 'center',
+    marginBottom: 20,
+  }}>
+  {error === 'NO_NETWORK'
+    ? 'Please check your internet connection and try again.'
+    : 'Something went wrong while loading the latest news.'}
+</Text>
 
   <TouchableOpacity
     onPress={onRefresh}

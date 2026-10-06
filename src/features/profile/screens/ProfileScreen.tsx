@@ -50,14 +50,16 @@ const Profile = () => {
       log('Google authentication successful',);
 
       console.log("googleSignInResult:", result?.idToken)
-  
-      const response = await googleSignIn({
+      const googleLoginRequest = {
         email: result.user.email,
         name: result.user.name ?? '',
-        // googleId: ,
-        // picture: ,
-        idToken: result?.idToken,
-      });
+        googleId: result.user.id,
+        picture: result.user.photo ?? '',
+        accessToken: result?.idToken,
+      }
+  
+        console.log("googleLoginRequest", googleLoginRequest)
+      const response = await googleSignIn(googleLoginRequest);
   
       devLog('Backend Google login:', result, response);
   

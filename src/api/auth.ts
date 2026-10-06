@@ -22,18 +22,18 @@ export const registerApi = async (payload: {
 export const googleSignIn = async ({
   email,
   name,
-  idToken
+  accessToken
 }: {
   email: string;
   name: string;
   googleId?: string,
   picture?: string,
-  idToken: string,
+  accessToken: string,
 }) => {
   const response = await api.post('/auth/googleSignIn', {
     email,
     name,
-    idToken
+    accessToken
   });
 
   return response.data;

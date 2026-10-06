@@ -68,7 +68,16 @@ const useNews = () => {
             `Error fetching news | page=${pageNumber} | retry=${retryCount}`,
             error,
           );
-  
+          if (
+            error &&
+            typeof error === 'object' &&
+            'name' in error &&
+            error.name === 'NETWORK_UNAVAILABLE'
+          ) {
+            setError('NO_NETWORK');
+            return;
+          }
+        
           if (retryCount < maxRetries) {
             const retryDelay = 1000 * Math.pow(2, retryCount);
   
