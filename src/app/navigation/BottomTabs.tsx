@@ -8,6 +8,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { devLog } from "../../utils/devLog";
 import { useTheme } from '../../context/ThemeContext';
+import Donation from '../../features/donation/screens/DonationScreen';
 
 
 
@@ -60,7 +61,10 @@ useEffect(() => {
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Search') {
-            iconName = 'search';
+            iconName = focused ? 'search' : 'search-outline'
+          } 
+          else if (route.name === 'Donate') {
+            iconName = focused ? 'heart' : 'heart-outline';
           } else if (route.name === 'Bookmarks') {
             iconName = focused ? 'bookmark' : 'bookmark-outline';
           } else if (route.name === 'Profile') {
@@ -72,6 +76,7 @@ useEffect(() => {
               name={iconName}
               size={26}
               color={color}
+              // color={route.name === 'Donate' && focused ? '#E53935' : color}
             />
           );
         },
@@ -80,6 +85,7 @@ useEffect(() => {
             <Tab.Screen name="Home" component={Home} />
             {/* <Tab.Screen name="SwipeFeedScreen" component={SwipeFeedScreen} /> */}
             <Tab.Screen name="Search" component={Search} />
+            <Tab.Screen name="Donate" component={Donation} />
             <Tab.Screen name="Bookmarks" component={Bookmarks} />
             <Tab.Screen name="Profile" component={Profile} />
         </Tab.Navigator>

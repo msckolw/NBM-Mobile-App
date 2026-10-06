@@ -52,9 +52,19 @@ export const initializePayUListeners = () => {
             ? JSON.parse(response)
             : response;
     
-        PayUBizSdk.hashGenerated({
-          [data.hashName]: parsedResponse[data.hashName],
-        });
+            const hash = parsedResponse?.[data.hashName];
+
+            if (!hash) {
+              console.error(
+                `PayU hash missing for "${data.hashName}"`,
+                parsedResponse,
+              );
+              return;
+            }
+            
+            PayUBizSdk.hashGenerated({
+              [data.hashName]: hash,
+            });
       } catch (error) {
         console.error('PayU hash generation failed:', error);
       }

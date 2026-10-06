@@ -9,7 +9,7 @@ import AppScreens from './BottomTabs';
 import CategoryFeedScreen from '../../features/news/screens/CategoryFeedScreen';
 import Settings from '../../features/profile/screens/SettingsScreen';
 import WebViewScreen from '../../features/webview/screens/WebViewScreen';
-import DonationScreen from '../../features/donation/screens/DonationScreen';
+import Donation from '../../features/donation/screens/DonationScreen';
 
 
 
@@ -47,7 +47,7 @@ export default function AppStack (){
       <Stack.Screen name="Sources" component={SourcesScreen} />
       <Stack.Screen name="SwipeFeed" component={SwipeFeedScreen} />
       <Stack.Screen name="Settings" component={Settings} />
-      <Stack.Screen name="Donation" component={DonationScreen} />
+      <Stack.Screen name="Donation" component={Donation} />
       <Stack.Screen 
   name="WebViewScreen" 
   component={WebViewScreen}

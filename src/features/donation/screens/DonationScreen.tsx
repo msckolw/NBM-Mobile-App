@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -34,7 +35,7 @@ const PAYMENT_METHODS: {
   {value: 'netbanking', label: 'Net Banking'},
 ];
 
-const DonationScreen = () => {
+const Donation = () => {
   const {theme} = useTheme();
   const isDark = theme === 'dark';
 
@@ -364,9 +365,16 @@ console.log('PayU FURL:', checkoutResponse.checkout.fields.furl);
       opacity: isSubmitting ? 0.6 : 1,
     },
   ]}>
-  <Text style={styles.donateButtonText}>
-    {isSubmitting ? 'Processing...' : `Donate ₹${amount || 0} →`}
-  </Text>
+  {isSubmitting ? (
+    <View style={styles.processingContent}>
+      <ActivityIndicator size="small" color="#fff" />
+      <Text style={styles.donateButtonText}>Processing...</Text>
+    </View>
+  ) : (
+    <Text style={styles.donateButtonText}>
+      {`Donate ₹${amount || 0} →`}
+    </Text>
+  )}
 </Pressable>
 
         {/* Legal */}
@@ -477,6 +485,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
   },
+  processingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
 });
 
-export default DonationScreen;
+export default Donation;
