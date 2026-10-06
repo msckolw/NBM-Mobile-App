@@ -52,7 +52,7 @@ const Donation = () => {
       firstname: '',
       email: '',
       phone: '',
-      method: 'all',
+      method: 'upi',
     },
     mode: 'onSubmit',
   });
@@ -60,10 +60,7 @@ const Donation = () => {
 
   const amount = watch('amount');
   const method = watch('method');
-  const selectedMethodLabel =
-  method === 'all'
-    ? 'UPI / Card'
-    : PAYMENT_METHODS.find(item => item.value === method)?.label;
+  const selectedMethodLabel = PAYMENT_METHODS.find(item => item.value === method)?.label;
 
 
     useEffect(() => {
@@ -76,6 +73,8 @@ const Donation = () => {
         setIsSubmitting(true);
     
         const idempotencyKey = uuid.v4() as string;
+
+        console.log("...data", data, idempotencyKey)
     
         const response = await createDonation({
           ...data,

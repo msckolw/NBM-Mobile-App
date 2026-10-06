@@ -1,4 +1,4 @@
-import {googleLogin} from '../../../services/auth/googleAuth';
+import {signInWithGoogle} from '../../../services/auth/googleAuth';
 import api from '../../../api/client'
 // import api from '../../../api/api';
 import {store} from '../../../store';
@@ -7,7 +7,7 @@ import { devLog } from "../../../utils/devLog";
 
 
 export const loginWithGoogle = async () => {
-  const googleResult = await googleLogin();
+  const googleResult = await signInWithGoogle();
 
   const googleUser = googleResult?.user;
 
@@ -15,7 +15,7 @@ export const loginWithGoogle = async () => {
     throw new Error('Google user information not found');
   }
 
-  const response = await api.post('/auth/googleSignIn', {
+  const response = await api.post('/auth/signInToBackendWithGoogle', {
     email: googleUser.email,
     name: googleUser.name,
     googleId: googleUser.id,

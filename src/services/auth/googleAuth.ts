@@ -17,7 +17,7 @@ export const configureGoogleSignIn = () => {
   });
 };
 
-export const googleLogin = async () => {
+export const signInWithGoogle = async () => {
   try {
     await GoogleSignin.hasPlayServices({
       showPlayServicesUpdateDialog: true,
@@ -27,18 +27,18 @@ export const googleLogin = async () => {
 
     devLog('Google User:', userInfo);
 
-    const idToken = userInfo.data?.idToken;
+    const tokens = await GoogleSignin.getTokens();
 
-    if (!idToken) {
-      devLog('Google Sign-In cancelled or no ID token was returned');
+    if (!tokens?.accessToken) {
+      devLog('Google Sign-In succeeded but no access token was returned');
       return null;
     }
-
-    devLog('Google ID Token received');
-
+    
+    devLog('Google OAuth access token received');
+    
     return {
       user: userInfo.data?.user,
-      idToken,
+      accessToken: tokens.accessToken,
     };
   } catch (error: any) {
     if (error?.code === statusCodes.SIGN_IN_CANCELLED) {

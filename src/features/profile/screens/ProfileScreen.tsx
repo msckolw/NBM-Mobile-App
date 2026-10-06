@@ -9,8 +9,8 @@ import { AppDispatch, RootState } from '../../../store/index';
 import { logout } from '../../auth/store/authslice';
 import { useCallback } from 'react';
 import { setAuth } from '../../auth/store/authslice';
-import { googleSignIn } from '../../../api/auth';
-import { googleLogin, googleLogout } from '../../../services/auth/googleAuth';
+import { signInToBackendWithGoogle } from '../../../api/auth';
+import { signInWithGoogle, googleLogout } from '../../../services/auth/googleAuth';
 import { log, setUserId } from '../../../services/monitoring/crashlytics';
 import { logEvent } from '../../../services/monitoring/analytics';
 import { devLog } from "../../../utils/devLog";
@@ -40,7 +40,7 @@ const Profile = () => {
     log('Google login started');
   
     try {
-      const result = await googleLogin();
+      const result = await signInWithGoogle();
   
       if (!result?.user?.email) {
         // setShowAuthModal(false);
@@ -49,17 +49,9 @@ const Profile = () => {
   
       log('Google authentication successful',);
 
-      console.log("googleSignInResult:", result?.idToken)
-      const googleLoginRequest = {
-        email: result.user.email,
-        name: result.user.name ?? '',
-        googleId: result.user.id,
-        picture: result.user.photo ?? '',
-        accessToken: result?.idToken,
-      }
-  
-        console.log("googleLoginRequest", googleLoginRequest)
-      const response = await googleSignIn(googleLoginRequest);
+      const response = await signInToBackendWithGoogle({
+        accessToken: result.accessToken,
+      });
   
       devLog('Backend Google login:', result, response);
   

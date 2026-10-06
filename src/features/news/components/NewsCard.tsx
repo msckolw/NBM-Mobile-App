@@ -15,14 +15,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import { timeAgo } from '../../../utils/timeAgo';
 import { type RootState, type AppDispatch, store } from '../../../store';
 import { setAuth } from '../../auth/store/authslice';
-import { googleSignIn } from '../../../api/auth';
-import { googleLogin } from '../../../services/auth/googleAuth';
+import { signInToBackendWithGoogle } from '../../../api/auth';
+import { signInWithGoogle } from '../../../services/auth/googleAuth';
 import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
 import { log, setUserId } from '../../../services/monitoring/crashlytics';
 import {logEvent} from '../../../services/monitoring/analytics';
 import { devLog } from "../../../utils/devLog";
 import {toggleBookmark} from '../../bookmarks/store/bookmarkSlice';
 import FastImage from '@d11/react-native-fast-image';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 
 type ArticleLike = {
@@ -153,24 +154,24 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     });
     log('Google login started');
     try {
-      const result = await googleLogin();
+      const result = await signInWithGoogle();
   
       if (!result?.user?.email) {
         setShowAuthModal(false);
         return;
       }
       log('Google authentication successful');
-      const userLoginPayload = {
-        email: result.user.email,
-        name: result.user.name ?? '',
-        googleId: result.user.id,
-        picture: result.user.photo ?? '',
-        idToken: result?.idToken,
-      }
-      devLog('GoogleResult', result);
-      devLog('GoogleuserLoginPayload', userLoginPayload);
+      const tokens = await GoogleSignin.getTokens();
 
-      const response = await googleSignIn(userLoginPayload);
+if (!tokens?.accessToken) {
+  throw new Error('Google access token was not available');
+}
+
+devLog('Google access token available:', true);
+
+const response = await signInToBackendWithGoogle({
+  accessToken: tokens.accessToken,
+});
   
       devLog('Backend Google login:', response);
   
@@ -329,7 +330,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
           <TouchableOpacity
             onPress={handleBookmark}
-            // onPress={ googleLogin}
+            // onPress={ signInWithGoogle}
           >
             <Icon
               name={bookmarked ? 'bookmark' : 'bookmark-outline'}

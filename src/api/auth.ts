@@ -19,21 +19,13 @@ export const registerApi = async (payload: {
   return res;
 };
 
-export const googleSignIn = async ({
-  email,
-  name,
-  accessToken
+export const signInToBackendWithGoogle = async ({
+  accessToken,
 }: {
-  email: string;
-  name: string;
-  googleId?: string,
-  picture?: string,
-  accessToken: string,
+  accessToken: string;
 }) => {
   const response = await api.post('/auth/googleSignIn', {
-    email,
-    name,
-    accessToken
+    accessToken,
   });
 
   return response.data;

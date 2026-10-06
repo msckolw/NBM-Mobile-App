@@ -19,8 +19,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { log } from '../../../services/monitoring/crashlytics';
 import { setAuth } from '../../../features/auth/store/authslice';
-import { googleLogin } from '../../../services/auth/googleAuth';
-import { googleSignIn } from '../../../api/auth';
+import { signInWithGoogle } from '../../../services/auth/googleAuth';
+import { signInToBackendWithGoogle } from '../../../api/auth';
 import { AppDispatch, RootState } from '../../../store/index';
 import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
 import { devLog } from "../../../utils/devLog";
@@ -28,7 +28,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import {toggleBookmark} from '../../../features/bookmarks/store/bookmarkSlice';
 
 // TEMPORARILY COMMENTED OUT FOR BUILD - WILL RESTORE LATER
-// import { googleLogin } from "../../services/auth/googleAuth";
+// import { signInWithGoogle } from "../../services/auth/googleAuth";
 
 const ReadMore = (props: any) => {
   const trackedRead = useRef(false);
@@ -150,18 +150,15 @@ const [showAuthModal, setShowAuthModal] = useState(false);
     log('Google login started');
   
     try {
-      const result = await googleLogin();
+      const result = await signInWithGoogle();
   
       if (!result?.user?.email) {
         setShowAuthModal(false);
         return;
       }
   
-      log('Google authentication successful');
-  
-      const response = await googleSignIn({
-        email: result.user.email,
-        name: result.user.name ?? '',
+      const response = await signInToBackendWithGoogle({
+        accessToken: result.accessToken,
       });
   
       devLog('Backend Google login:', response);
