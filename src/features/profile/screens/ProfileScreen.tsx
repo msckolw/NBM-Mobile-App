@@ -31,7 +31,8 @@ const Profile = () => {
 
 
 
-  const handleGoogleLogin = useCallback(async () => {
+  const handleGoogleLogin = async ()=> {
+    console.log("calling goole")
     logEvent('login_started', {
       method: 'google',
     });
@@ -46,14 +47,19 @@ const Profile = () => {
         return;
       }
   
-      log('Google authentication successful');
+      log('Google authentication successful',);
+
+      console.log("googleSignInResult:", result?.idToken)
   
       const response = await googleSignIn({
         email: result.user.email,
         name: result.user.name ?? '',
+        // googleId: ,
+        // picture: ,
+        idToken: result?.idToken,
       });
   
-      devLog('Backend Google login:', response);
+      devLog('Backend Google login:', result, response);
   
       if (response?.success) {
         logEvent('login_success', {
@@ -90,7 +96,8 @@ const Profile = () => {
         'Unable to login with Google. Please try again.',
       );
     }
-  }, [dispatch]);
+  }
+  ;
 
 
 
