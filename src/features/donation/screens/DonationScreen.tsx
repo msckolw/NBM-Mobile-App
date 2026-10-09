@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -21,8 +21,14 @@ import type {DonationPaymentMethod} from '../types/donation';
 import {createDonation, getDonationCheckout} from '../services/donationApi';
 import {savePendingDonationId} from '../services/donationStorage';
 import uuid from 'react-native-uuid';
-import { initializePayUListeners, startPayUPayment } from '../services/payuService';
+import { DonationPaymentStatus, initializePayUListeners, startPayUPayment } from '../services/payuService';
 import { showToast } from '../../../services/ui/toastService';
+import {DeviceEventEmitter} from 'react-native';
+import {
+  PAYMENT_VERIFIED_EVENT,
+} from '../services/payuService';
+import { RootState } from '../../../store/index';
+import { useSelector } from 'react-redux';
 
 
 const PRESET_AMOUNTS = [50, 100, 200, 500, 1000];
@@ -38,6 +44,7 @@ const PAYMENT_METHODS: {
 
 const Donation = () => {
   const {theme} = useTheme();
+  const user = useSelector((state: RootState) => state.auth.user);
   const isDark = theme === 'dark';
 
   const {
@@ -53,10 +60,11 @@ const Donation = () => {
       firstname: '',
       email: '',
       phone: '',
-      method: 'upi',
+      method: 'all',
     },
     mode: 'onSubmit',
   });
+  const inFlight = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const amount = watch('amount');
@@ -69,28 +77,96 @@ const Donation = () => {
       return initializePayUListeners();
     }, []);
 
+    useEffect(() => {
+      const subscription = DeviceEventEmitter.addListener(
+        PAYMENT_VERIFIED_EVENT,
+        (status: DonationPaymentStatus) => {
+          console.log('Donation payment verified event:', status);
+
+          inFlight.current = false;
+    
+          if (status === 'success') {
+            showToast({
+              type: 'success',
+              title: 'Donation Successful',
+              message: 'Thank you for supporting NoBiasNews.',
+            });
+            return;
+          }
+    
+          if (status === 'failed') {
+            showToast({
+              type: 'error',
+              title: 'Payment Failed',
+              message: 'Your donation could not be completed.',
+            });
+            return;
+          }
+    
+          if (status === 'pending') {
+            showToast({
+              type: 'info',
+              title: 'Payment Pending',
+              message:
+                'Your payment is being verified. Please check again shortly.',
+            });
+          }
+
+          if (status === 'cancelled') {
+            showToast({
+              type: 'info',
+              title: 'Payment Cancelled',
+              message: 'The donation payment was cancelled.',
+            });
+          }
+        },
+      );
+    
+      return () => {
+        subscription.remove();
+      };
+    }, []);
+
     const handleDonate = async (data: DonationFormValues) => {
+      if (inFlight.current) {
+        console.log('Donation already in progress');
+        return;
+      }
+    
+      inFlight.current = true;
+    
+      console.log('HANDLE DONATE CALLED:', new Date().toISOString());
       try {
         setIsSubmitting(true);
     
         const idempotencyKey = uuid.v4() as string;
 
         console.log("...data", data, idempotencyKey)
-    
-        const response = await createDonation({
+
+        const requestCreateDonation = {
           ...data,
+          method: 'all',
           platform: 'app',
           idempotencyKey,
-        });
+        }
+        console.log("requestCreateDonation", requestCreateDonation)
+    
+        const response = await createDonation(requestCreateDonation);
     
         await savePendingDonationId(response.id);
     
         const checkoutResponse = await getDonationCheckout(response.id);
+        console.log('Donation ID:', response.id);
+console.log(
+  'PayU txnid:',
+  checkoutResponse.checkout.fields.txnid,
+);
     
         console.log('PayU SURL:', checkoutResponse.checkout.fields.surl);
 console.log('PayU FURL:', checkoutResponse.checkout.fields.furl);
+console.log('PayU Fields:', checkoutResponse.checkout.fields);
     
-        await startPayUPayment(checkoutResponse.checkout.fields);
+        await startPayUPayment(checkoutResponse.checkout.fields, response.id,);
     
         console.log('Donation created:', response);
       } catch (error) {
@@ -395,8 +471,8 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    padding: 16,
-    paddingBottom: 40,
+    paddingHorizontal: 16,
+    // paddingBottom: 40,
   },
 
   title: {

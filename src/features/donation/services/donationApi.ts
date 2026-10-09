@@ -44,3 +44,21 @@ export const getDonationStatus = async (
 
   return response.data;
 };
+
+
+export const getDonationStatusByTxnid = async (txnid: string) => {
+  const response = await paymentClient.get(
+    `/donations/by-txnid/${txnid}`,
+  );
+  return response.data;
+};
+
+export const cancelDonation = async (donationId: string) => {
+  const response = await paymentClient.post(
+    `/donations/${donationId}/cancel`,
+  );
+
+  return response.data;
+};
+
+
