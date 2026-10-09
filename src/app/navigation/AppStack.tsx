@@ -14,6 +14,7 @@ import Donation from '../../features/donation/screens/DonationScreen';
 
 import AppScreens from './BottomTabs';
 import AppHeader from '../../components/common/header';
+import DonationSuccessScreen from '../../features/donation/screens/DonationSuccessScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -114,6 +115,14 @@ export default function AppStack() {
           title: route.params?.title ?? 'Web',
         })}
       />
+      <Stack.Screen
+  name="DonationSuccess"
+  component={DonationSuccessScreen}
+  options={{
+    title: 'Donation Successful',
+    headerBackVisible: false,
+  }}
+/>
     </Stack.Navigator>
   );
 }

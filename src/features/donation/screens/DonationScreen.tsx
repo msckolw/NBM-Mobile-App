@@ -42,7 +42,7 @@ const PAYMENT_METHODS: {
   {value: 'netbanking', label: 'Net Banking'},
 ];
 
-const Donation = () => {
+const Donation = ({navigation}) => {
   const {theme} = useTheme();
   const user = useSelector((state: RootState) => state.auth.user);
   const isDark = theme === 'dark';
@@ -52,6 +52,7 @@ const Donation = () => {
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: {errors},
   } = useForm<DonationFormValues>({
     resolver: zodResolver(donationSchema),
@@ -77,55 +78,62 @@ const Donation = () => {
       return initializePayUListeners();
     }, []);
 
-    useEffect(() => {
-      const subscription = DeviceEventEmitter.addListener(
-        PAYMENT_VERIFIED_EVENT,
-        (status: DonationPaymentStatus) => {
-          console.log('Donation payment verified event:', status);
+   
+useEffect(() => {
+  const subscription = DeviceEventEmitter.addListener(
+    PAYMENT_VERIFIED_EVENT,
+    (status: DonationPaymentStatus) => {
+      console.log('Donation payment verified event:', status);
 
-          inFlight.current = false;
-    
-          if (status === 'success') {
-            showToast({
-              type: 'success',
-              title: 'Donation Successful',
-              message: 'Thank you for supporting NoBiasNews.',
-            });
-            return;
-          }
-    
-          if (status === 'failed') {
-            showToast({
-              type: 'error',
-              title: 'Payment Failed',
-              message: 'Your donation could not be completed.',
-            });
-            return;
-          }
-    
-          if (status === 'pending') {
-            showToast({
-              type: 'info',
-              title: 'Payment Pending',
-              message:
-                'Your payment is being verified. Please check again shortly.',
-            });
-          }
+      if (status === 'success') {
+        inFlight.current = false;
+        reset({
+          amount: 50,
+          firstname: '',
+          email: '',
+          phone: '',
+          method: 'all',
+        });
+        navigation.replace('DonationSuccess');
+        return;
+      }
 
-          if (status === 'cancelled') {
-            showToast({
-              type: 'info',
-              title: 'Payment Cancelled',
-              message: 'The donation payment was cancelled.',
-            });
-          }
-        },
-      );
-    
-      return () => {
-        subscription.remove();
-      };
-    }, []);
+      if (status === 'failed') {
+        inFlight.current = false;
+
+        showToast({
+          type: 'error',
+          title: 'Payment Failed',
+          message: 'Your donation could not be completed.',
+        });
+        return;
+      }
+
+      if (status === 'cancelled') {
+        inFlight.current = false;
+
+        showToast({
+          type: 'info',
+          title: 'Payment Cancelled',
+          message: 'The donation payment was cancelled.',
+        });
+        return;
+      }
+
+      if (status === 'pending') {
+        showToast({
+          type: 'info',
+          title: 'Payment Pending',
+          message:
+            'Your payment is being verified. Please do not make another payment yet.',
+        });
+      }
+    },
+  );
+
+  return () => subscription.remove();
+}, [navigation]);
+
 
     const handleDonate = async (data: DonationFormValues) => {
       if (inFlight.current) {
@@ -156,6 +164,13 @@ const Donation = () => {
         await savePendingDonationId(response.id);
     
         const checkoutResponse = await getDonationCheckout(response.id);
+        console.log('txnid:', JSON.stringify(checkoutResponse.checkout.fields.txnid));
+console.log('txnid type:', typeof checkoutResponse.checkout.fields.txnid);
+console.log('txnid length:', checkoutResponse.checkout.fields.txnid);
+console.log(
+  'txnid has whitespace:',
+  typeof checkoutResponse.checkout.fields.txnid === 'string' && /\s/.test(checkoutResponse.checkout.fields.txnid),
+);
         console.log('Donation ID:', response.id);
 console.log(
   'PayU txnid:',
@@ -171,12 +186,17 @@ console.log('PayU Fields:', checkoutResponse.checkout.fields);
         console.log('Donation created:', response);
       } catch (error) {
         console.error('Donation creation failed:', error);
+        console.log('Donation/checkout catch fired');
+        console.error('Donation creation failed:', error);
+      
+        inFlight.current = false;
+      
         showToast({
           type: 'error',
           title: 'Donation Failed',
-          message: 'Unable to create the donation. Please try again.'
-        })
-      } finally {
+          message: 'Unable to create the donation. Please try again.',
+        });
+      }finally {
         setIsSubmitting(false);
       }
     };
@@ -223,9 +243,7 @@ console.log('PayU Fields:', checkoutResponse.checkout.fields);
           reporting.
         </Text> */}
 
-        <Text style={[styles.title, {color: isDark ? '#fff' : '#000'}]}>
-  Make a Donation
-</Text>
+ 
 
 <Text style={[styles.description, {color: isDark ? '#ccc' : '#444'}]}>
   Every rupee counts towards better journalism.

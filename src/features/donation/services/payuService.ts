@@ -39,21 +39,52 @@ export const startPayUPayment = async (
   currentDonationId = donationId;
   const uniqueId = await DeviceInfo.getUniqueId();
 
+  // const paymentObject = {
+  //   payUPaymentParams: {
+  //     ...paymentParams,
+  //     android_surl: paymentParams.surl,
+  //     android_furl: paymentParams.furl,
+  //     // userCredential: `${paymentParams.key}:${uniqueId}`,
+  //     userCredential: `${paymentParams.key}:${paymentParams.email}`,
+  //   },
+  // };
+
+  // console.log(
+  //   'PayU payment object:',
+  //   JSON.stringify(paymentObject, null, 2),
+  // );
+
+  // PayUBizSdk.openCheckoutScreen(paymentObject);
+
   const paymentObject = {
     payUPaymentParams: {
-      ...paymentParams,
+      key: paymentParams.key,
+      transactionId: paymentParams.txnid,
+      amount: paymentParams.amount,
+      productInfo: paymentParams.productinfo,
+      firstName: paymentParams.firstname,
+      email: paymentParams.email,
+      phone: paymentParams.phone,
       android_surl: paymentParams.surl,
       android_furl: paymentParams.furl,
-      // userCredential: `${paymentParams.key}:${uniqueId}`,
+      ios_surl: paymentParams.surl,
+      ios_furl: paymentParams.furl,
+      hash: paymentParams.hash,
       userCredential: `${paymentParams.key}:${paymentParams.email}`,
     },
   };
-
+  
+  console.log('=== SDK PARAMS ===');
   console.log(
-    'PayU payment object:',
-    JSON.stringify(paymentObject, null, 2),
+    'transactionId:',
+    paymentObject.payUPaymentParams.transactionId,
   );
-
+  console.log(
+    'transactionId length:',
+    paymentObject.payUPaymentParams.transactionId.length,
+  );
+  
+  console.log('Opening PayU CheckoutPro');
   PayUBizSdk.openCheckoutScreen(paymentObject);
 };
 
@@ -142,15 +173,27 @@ export const initializePayUListeners = ( onPaymentVerified?: (status: DonationPa
 
     DeviceEventEmitter.addListener('onPaymentSuccess', async data => {
       console.log('PayU success:', data);
-    
-      const txnid = data?.payuResponse?.txnid;
-    
-      if (!txnid) {
-        console.log('PayU success callback missing txnid', data);
-        return;
-      }
-    
-      console.log('PayU payment success, verifying txnid:', txnid);
+
+  let payuResponse: any;
+
+  try {
+    payuResponse =
+      typeof data?.payuResponse === 'string'
+        ? JSON.parse(data.payuResponse)
+        : data?.payuResponse;
+  } catch (error) {
+    console.error('Failed to parse PayU response:', error);
+    return;
+  }
+
+  const txnid = payuResponse?.txnid;
+
+  if (!txnid) {
+    console.error('PayU success callback missing txnid', data);
+    return;
+  }
+
+  console.log('PayU payment success, verifying txnid:', txnid);
     
       try {
         // First, resolve the transaction to our donation.
