@@ -147,6 +147,12 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
       category: bookmarkArticle.category,
       origin: origin ?? 'Unknown',
     });
+    showToast({
+      type: wasBookmarked ? 'info' : 'success',
+      title: wasBookmarked
+        ? 'Removed from bookmarks'
+        : 'Saved to bookmarks',
+    });
   };
 
   const handleGoogleLogin = useCallback(async () => {

@@ -21,6 +21,7 @@ import {ThemeProvider, useTheme} from '../context/ThemeContext';
 import { initializeAnalyticsDeviceInfo } from '../services/monitoring/analytics';
 import { initializeNetworkMonitoring } from '../services/monitoring/crashlytics';
 import {PersistGate} from 'redux-persist/integration/react';
+import { toastConfig } from '../components/common/toast/toastConfig';
 
 if (__DEV__) {
   LogBox.ignoreAllLogs(false);
@@ -72,7 +73,12 @@ function AppContent() {
 
           <ErrorBoundary>
             <RootNavigator />
-            <Toast />
+            {/* <Toast /> */}
+            <Toast
+  config={toastConfig}
+  position="top"
+  topOffset={60}
+/>
           </ErrorBoundary>
         </GestureHandlerRootView>
       </SafeAreaProvider>
