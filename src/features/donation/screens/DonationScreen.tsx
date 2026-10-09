@@ -183,13 +183,12 @@ console.log('PayU Fields:', checkoutResponse.checkout.fields);
 
   return (
     <SafeAreaView
-      edges={['top']}
-      style={[
-        styles.safeArea,
-        {
-          backgroundColor: isDark ? '#121212' : '#fff',
-        },
-      ]}>
+    edges={['bottom']}
+    style={{
+      flex: 1,
+      backgroundColor: theme === 'light' ? '#FFFFFF' : '#000000',
+    }}
+  >
           <KeyboardAvoidingView
     style={styles.keyboardAvoidingView}
     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

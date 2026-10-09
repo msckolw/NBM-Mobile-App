@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, FlatList, TouchableOpacity, Text } from 'react-native';
+import { View, FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import NewsCard from '../components/NewsCard';
 import {useTheme} from '../../../context/ThemeContext';
 import TopicTabs from '../components/TopicTabs';
@@ -38,7 +38,7 @@ const Home = () => {
     onRefresh,
     loadMore,
     page,
-  } = useNews();
+  } = useNews(selectedTopic);;
 
   console.log("Error Fetching nwes", error)
   
@@ -96,18 +96,22 @@ const Home = () => {
 
 
 
-  const handleArticlePress = useCallback((id: string) => {
-    logEvent(AnalyticsEvents.ARTICLE_VIEWED, {
-      article_id: id,
-      source: 'home_feed',
-      origin: 'Home',
-    });
+  const handleArticlePress = useCallback(
+    (id: string, category?: string) => {
+      logEvent(AnalyticsEvents.ARTICLE_VIEWED, {
+        article_id: id,
+        source: 'home_feed',
+        origin: 'Home',
+      });
   
-    navigation.navigate('ReadMore', {
-      id,
-      origin: 'ReadMore',
-    });
-  }, [navigation]);
+      navigation.navigate('ReadMore', {
+        id,
+        origin: 'ReadMore',
+        category,
+      });
+    },
+    [navigation],
+  );
 
 
   const handleSourcesPress = useCallback(
@@ -130,7 +134,7 @@ const Home = () => {
       title="Read More"
       secondaryTitle="News Sources"
       theme={theme}
-      onPress={() => handleArticlePress(item._id)}
+      onPress={() => handleArticlePress(item._id, item.category)}
       onSecondaryPress={() => handleSourcesPress(item._id)}
     />
     );
@@ -235,28 +239,19 @@ const Home = () => {
     <View
     style={{
       flex: 1,
-      paddingTop: insets.top,
+      // paddingTop: insets.top,
       backgroundColor: theme === 'light' ? '#fff' : '#000',
-    }}
-  >
+    }}>
       {/* Header must NOT use flex */}
       <TopicTabs
   selected={selectedTopic}
   theme={theme}
   onPress={topic => {
     ReactNativeHapticFeedback.trigger('impactLight');
-
     setSelectedTopic(topic);
-    
     logEvent('category_selected', {
       category: topic,
     });
-
-    if (topic === 'All') {
-      return;
-    }
-
-    navigation.navigate('CategoryFeed', { topic });
   }}
 />
 
@@ -280,9 +275,44 @@ const Home = () => {
   maxToRenderPerBatch={10}
   windowSize={5}
   // removeClippedSubviews
+  ListEmptyComponent={
+    !loading && !refreshing && !error ? (
+      <View style={styles.emptyContainer}>
+        <Text style={[styles.emptyTitle, { color: theme.text }]}>
+          No news available
+        </Text>
+  
+        <Text style={[styles.emptyDescription, { color: theme.textSecondary }]}>
+          There are no articles in this category yet. Try another topic.
+        </Text>
+      </View>
+    ) : null
+  }
 />
     </View>
   );
 };
 
 export default Home;
+
+
+export const styles = StyleSheet.create({
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 48,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  emptyDescription: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+})

@@ -28,27 +28,14 @@ const Settings = () => {
 
   return (
     <SafeAreaView
-      edges={['top']}
-      style={{
-        flex: 1,
-        backgroundColor,
-      }}
-    >
-      <View style={{ paddingHorizontal: 16 }}>
-        {/* HEADER */}
+    edges={['bottom']}
+    style={{
+      flex: 1,
+      backgroundColor: theme === 'light' ? '#FFFFFF' : '#000000',
+    }}
+  >
+      <View style={{ padding: 16 }}>
 
-        <Text
-          style={{
-            fontSize: 28,
-            fontWeight: '700',
-            color: textColor,
-            marginBottom: 20,
-          }}
-        >
-          Settings
-        </Text>
-
-        {/* GENERAL */}
 
         <Text
           style={{

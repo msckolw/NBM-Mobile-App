@@ -134,6 +134,7 @@ export default function CategoryFeedScreen({ route }) {
                 (navigation as any).navigate('ReadMore', {
                   id: item?._id,
                   origin: 'ReadMore',
+                  // category: item.category,
                 })
               }
               onSecondaryPress={() =>

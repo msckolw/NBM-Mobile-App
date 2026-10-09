@@ -33,7 +33,8 @@ import { showToast } from '../../../services/ui/toastService';
 
 const ReadMore = (props: any) => {
   const trackedRead = useRef(false);
-  const { id } = props?.route?.params || {};
+  // const { id } = props?.route?.params || {};
+  const {id, category: initialCategory} = props?.route?.params || {};
   const { data, loading, error } = useDetailedNews(id);
   const {theme} = useTheme();
   const navigation = useNavigation();
@@ -52,6 +53,8 @@ const [showAuthModal, setShowAuthModal] = useState(false);
     }
     return data;
   }, [data]);
+
+
     useEffect(() => {
     if (!article?._id) {
       return;
@@ -63,6 +66,17 @@ const [showAuthModal, setShowAuthModal] = useState(false);
       origin: 'ReadMore',
     });
   }, [article?._id]);
+
+
+
+
+ useEffect(() => {
+  navigation.setOptions({
+    title: String(
+      article?.category || initialCategory || 'News',
+    ).toUpperCase(),
+  });
+}, [navigation, article?.category, initialCategory]);
 
   // useEffect(() => {
   //   trackedRead.current = false;
@@ -272,45 +286,17 @@ const [showAuthModal, setShowAuthModal] = useState(false);
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: theme === 'light' ? '#fff' : '#000' }}
-    >
+    edges={['left', 'right', 'bottom']}
+    style={{
+      flex: 1,
+      backgroundColor: theme === 'light' ? '#fff' : '#000',
+    }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 24 }}
         onScroll={handleArticleScroll}
         scrollEventThrottle={200}
       >
-<View
-  style={{
-    paddingHorizontal: 16,
-    // paddingTop: 8,
-    // paddingBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  }}
->
-  <TouchableOpacity
-    onPress={() => (navigation as any).goBack()}
-    style={{ padding: 8, marginRight: 8 }}
-    hitSlop={8}
-  >
-    <Icon
-      name="arrow-back"
-      size={22}
-      color={theme === 'light' ? '#000' : '#fff'}
-    />
-  </TouchableOpacity>
-
-  <Text
-    style={{
-      color: theme === 'light' ? '#000' : '#fff',
-      fontSize: 17,
-      fontWeight: '700',
-    }}
-  >
-    {String(article?.category.toUpperCase() || 'News')}
-  </Text>
-</View>
 
         {!!article.imageUrl && (
           <Image

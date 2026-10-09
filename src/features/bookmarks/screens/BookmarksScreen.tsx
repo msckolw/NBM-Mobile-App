@@ -16,10 +16,10 @@ export default function BookmarksScreen() {
 
   return (
     <SafeAreaView
-    edges={['top']}
+    edges={['bottom']}
     style={{
       flex: 1,
-      backgroundColor: theme === 'light' ? '#fff' : '#000',
+      backgroundColor: theme === 'light' ? '#FFFFFF' : '#000000',
     }}
   >
       {/* Header must NOT use flex */}
@@ -42,7 +42,7 @@ export default function BookmarksScreen() {
   renderItem={({item}) => (
     <NewsCard
       onPress={() =>
-        (navigation as any).navigate('ReadMore', {id: item._id})
+        (navigation as any).navigate('ReadMore', {id: item._id,  category: item?.category,})
       }
       title="Read More"
       origin="ReadMore"

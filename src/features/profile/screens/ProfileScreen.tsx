@@ -119,24 +119,13 @@ const Profile = () => {
 
   return (
     <SafeAreaView
-    edges={['top']}
+    edges={['bottom']}
     style={{
       flex: 1,
-      backgroundColor: theme === 'light' ? '#fff' : '#000',
+      backgroundColor: theme === 'light' ? '#FFFFFF' : '#000000',
     }}
   >
-    <View style={{ paddingHorizontal: 16 }}>
-      
-      <Text
-        style={{
-          fontSize: 28,
-          fontWeight: '700',
-          color: theme === 'light' ? '#000' : '#fff',
-          marginBottom: 20,
-        }}
-      >
-        Profile
-      </Text>
+    <View style={{ padding: 16 }}>
   
       <TouchableOpacity
         onPress={() => navigation.navigate('Settings')}
