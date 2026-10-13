@@ -7,6 +7,8 @@ import {getCurrentNetworkInfo, getNetworkInfo } from '../services/network/networ
 const baseURL = 'https://nobiasmedia.onrender.com/api';
 const timeOut = 10000;
 
+const requestStartTimes = new WeakMap<object, number>();
+
 const api = axios.create({
     baseURL,
     timeout: timeOut,
@@ -57,10 +59,13 @@ const api = axios.create({
     devLog('body:', safeData);
     devLog('=================================');
   
+requestStartTimes.set(config, Date.now());
+
     return config;
   });
 
   api.interceptors.response.use(
+    
     response => response,
     error => {
       if (error?.name === 'NETWORK_UNAVAILABLE') {
@@ -68,6 +73,14 @@ const api = axios.create({
         return Promise.reject(error);
       }
   
+const startedAt = error?.config
+? requestStartTimes.get(error.config)
+: undefined;
+
+devLog('API request duration (ms):',
+startedAt ? Date.now() - startedAt : 'unknown',
+);
+
       devLog('========== API ERROR ==========');
       devLog('message:', error?.message);
       devLog('code:', error?.code);

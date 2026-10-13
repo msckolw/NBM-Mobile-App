@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -29,6 +29,7 @@ import {
 } from '../services/payuService';
 import { RootState } from '../../../store/index';
 import { useSelector } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 
 
 const PRESET_AMOUNTS = [50, 100, 200, 500, 1000];
@@ -133,6 +134,25 @@ useEffect(() => {
 
   return () => subscription.remove();
 }, [navigation]);
+
+useFocusEffect(
+  useCallback(() => {
+    return () => {
+      // Reset form fields and validation state.
+      reset({
+        amount: 50,
+        firstname: '',
+        email: '',
+        phone: '',
+        method: 'all',
+      });
+
+      // Reset local UI state.
+      setIsSubmitting(false);
+      inFlight.current = false;
+    };
+  }, [reset]),
+);
 
 
     const handleDonate = async (data: DonationFormValues) => {
@@ -307,13 +327,11 @@ console.log('PayU Fields:', checkoutResponse.checkout.fields);
           render={({field: {onChange, value}}) => (
             <Input
               label="Custom Amount"
-              value={String(value ?? '')}
+              value={value === 50 ? '' : String(value ?? '')}
               onChangeText={text => {
-                const numericValue = text.replace(/\D/g, '');
-
-                onChange(
-                  numericValue === '' ? 0 : Number(numericValue),
-                );
+                setValue('amount', text === '' ? 0 : Number(text), {
+                  shouldValidate: true,
+                });
               }}
               keyboardType="number-pad"
               placeholder="Enter amount"

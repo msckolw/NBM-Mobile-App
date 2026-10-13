@@ -1,9 +1,9 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
-import {getNews, getNewsByCategoryPaged} from '../../../api/news';
-import {recordError} from '../../../services/monitoring/crashlytics';
-import {devLog} from '../../../utils/devLog';
+import { getNews, getNewsByCategoryPaged } from '../../../api/news';
+import { recordError } from '../../../services/monitoring/crashlytics';
+import { devLog } from '../../../utils/devLog';
 
 type Article = {
   _id: string;
@@ -11,7 +11,12 @@ type Article = {
   [key: string]: any;
 };
 
-type NewsError = 'NO_NETWORK' | 'FAILED';
+type NewsError =
+  | 'NO_NETWORK'
+  | 'TIMEOUT'
+  | 'SERVER_ERROR'
+  | 'CONNECTION_ERROR'
+  | 'FAILED';
 
 const useNews = (selectedCategory = 'All') => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -71,9 +76,7 @@ const useNews = (selectedCategory = 'All') => {
                 return nextArticles;
               }
 
-              const existingIds = new Set(
-                previous.map(article => article._id),
-              );
+              const existingIds = new Set(previous.map(article => article._id));
 
               return [
                 ...previous,
@@ -91,27 +94,69 @@ const useNews = (selectedCategory = 'All') => {
               return;
             }
 
-            devLog(
-              `News request failed | category=${category} | page=${pageNumber} | retry=${retryCount}`,
-              requestError,
-            );
+            const isOffline = requestError?.name === 'NETWORK_UNAVAILABLE';
 
-            if (
-              requestError?.name === 'NETWORK_UNAVAILABLE' ||
-              !requestError?.response
-            ) {
-              setError('NO_NETWORK');
-              return;
-            }
+            const status = requestError?.response?.status;
+            const code = requestError?.code;
+            const hasNoResponse = !requestError?.response;
 
-            if (retryCount < maxRetries) {
+            // Retry transient network errors, timeouts, and server errors.
+            // Do not retry when our network interceptor confirms the device is offline.
+            const isTransientFailure =
+              !isOffline &&
+              (hasNoResponse ||
+                status >= 500 ||
+                ['ECONNABORTED', 'ETIMEDOUT', 'ERR_TIMED_OUT'].includes(code));
+
+            devLog('News request failed', {
+              category,
+              page: pageNumber,
+              retry: retryCount,
+              message: requestError?.message,
+              code,
+              status,
+              url: requestError?.config?.url,
+              baseURL: requestError?.config?.baseURL,
+              isOffline,
+              isTransientFailure,
+            });
+
+            if (isTransientFailure && retryCount < maxRetries) {
+              devLog(
+                `Retrying news request | category=${category} | page=${pageNumber}`,
+              );
+
               await new Promise(resolve =>
                 setTimeout(resolve, 1000 * (retryCount + 1)),
               );
+
+              // A category change or unmount may have invalidated this request.
+              if (currentRequestId !== requestId.current) {
+                return;
+              }
+
               continue;
             }
 
-            setError('FAILED');
+            let newsError: NewsError;
+
+            if (isOffline) {
+              newsError = 'NO_NETWORK';
+            } else if (
+              code === 'ECONNABORTED' ||
+              code === 'ETIMEDOUT' ||
+              code === 'ERR_TIMED_OUT'
+            ) {
+              newsError = 'TIMEOUT';
+            } else if (status >= 500) {
+              newsError = 'SERVER_ERROR';
+            } else if (!requestError?.response) {
+              newsError = 'CONNECTION_ERROR';
+            } else {
+              newsError = 'FAILED';
+            }
+
+            setError(newsError);
 
             recordError(
               requestError instanceof Error
@@ -119,6 +164,8 @@ const useNews = (selectedCategory = 'All') => {
                 : new Error('Unknown article fetch error'),
               'Failed to fetch articles',
             );
+
+            return;
           }
         }
       } finally {
@@ -143,7 +190,7 @@ const useNews = (selectedCategory = 'All') => {
     setError(null);
     setLoading(true);
 
-    void fetchNews(1, true);
+    fetchNews(1, true);
 
     return () => {
       requestId.current += 1;
@@ -173,14 +220,7 @@ const useNews = (selectedCategory = 'All') => {
     }
 
     void fetchNews(page + 1);
-  }, [
-    articles.length,
-    fetchNews,
-    loading,
-    loadingMore,
-    page,
-    totalPages,
-  ]);
+  }, [articles.length, fetchNews, loading, loadingMore, page, totalPages]);
 
   return {
     articles,

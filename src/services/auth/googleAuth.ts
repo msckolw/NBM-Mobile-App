@@ -7,11 +7,6 @@ import { devLog } from "../../utils/devLog";
 
 
 export const configureGoogleSignIn = () => {
-  devLog(
-    'GOOGLE WEB CLIENT ID:',
-    ENV.GOOGLE_WEB_CLIENT_ID,
-  );
-
   GoogleSignin.configure({
     webClientId: ENV.GOOGLE_WEB_CLIENT_ID,
   });
