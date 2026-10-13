@@ -1,3 +1,4 @@
+import React,{ useCallback, useState }from 'react';
 import {
   View,
   Text,
@@ -5,11 +6,26 @@ import {
   StyleSheet,
   TouchableOpacity,
   Share,
-  Button,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useBookmarkStore } from '../../../store/BookmarkStore';
+import { useSelector, useDispatch } from 'react-redux';
+
+// import { useBookmarkStore } from '../../../store/BookmarkStore';
 import { timeAgo } from '../../../utils/timeAgo';
+import { type RootState, type AppDispatch, store } from '../../../store';
+import { setAuth } from '../../auth/store/authslice';
+import { signInToBackendWithGoogle } from '../../../api/auth';
+import { signInWithGoogle } from '../../../services/auth/googleAuth';
+import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
+import { log, setUserId } from '../../../services/monitoring/crashlytics';
+import {logEvent} from '../../../services/monitoring/analytics';
+import { devLog } from "../../../utils/devLog";
+import {toggleBookmark} from '../../bookmarks/store/bookmarkSlice';
+import FastImage from '@d11/react-native-fast-image';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { showToast } from '../../../services/ui/toastService';
+
 
 type ArticleLike = {
   _id: string;
@@ -39,7 +55,7 @@ type NewsCardProps = {
   origin?: string;
 };
 
-export default function NewsCard({
+const  NewsCard = ({
   article,
   theme = 'light',
   onPress,
@@ -47,19 +63,31 @@ export default function NewsCard({
   secondaryTitle,
   onSecondaryPress,
   origin,
-}: NewsCardProps) {
-  console.log('ArticleGetting:', article?._id);
-  // if (!article || !article._id) return null;
-  const { toggleBookmark, isBookmarked } = useBookmarkStore();
+}: NewsCardProps) =>{
+  const dispatch = useDispatch<AppDispatch>();
+  // const { toggleBookmark, isBookmarked } = useBookmarkStore();
+  
+  const { user, token } = useSelector((state: RootState) => state.auth);
+  // const { user, token, setAuth } = useAuthStore();
+  const [pendingBookmark, setPendingBookmark] =
+  useState<BookmarkArticle | null>(null);
+
+const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+
+  const isDark = theme === 'dark';
+  const isAuthenticated = !!token;
   const isReadMore = origin === 'ReadMore';
   const useThisArticle: ArticleLike | undefined = isReadMore
     ? article
     : article?.item ?? article;
-  const bookmarked = !!useThisArticle?._id && isBookmarked(useThisArticle._id);
-  // const isBookmarked = useBookmarkStore((s) => s.isBookmarked(article?.item?._id));
-  // const origin = props?.route?.params || ''
-  console.log('Origin:', origin);
-  console.log('useThisArticle', isReadMore);
+    const bookmarked = useSelector((state: RootState) =>
+  state.bookmarks.items.some(item => item._id === useThisArticle?._id),
+);
+  // const bookmarked = !!useThisArticle?._id && isBookmarked(useThisArticle._id);
+
+
 
   const bookmarkArticle: BookmarkArticle | null = useThisArticle?._id
     ? {
@@ -75,7 +103,6 @@ export default function NewsCard({
   if (!useThisArticle?._id) {
     return null;
   }
-
   const handleShare = async () => {
     try {
       await Share.share({
@@ -86,56 +113,241 @@ export default function NewsCard({
           useThisArticle._id
         }`,
       });
+  
+      logEvent('article_shared', {
+        article_id: useThisArticle._id,
+        article_title: useThisArticle.title ?? '',
+      });
     } catch (err) {
-      console.log('Share failed:', err);
+      devLog('Share failed:', err);
     }
   };
+
+  const handleBookmark = () => {
+    if (!bookmarkArticle) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setPendingBookmark(bookmarkArticle);
+      setShowAuthModal(true);
+      logEvent('bookmark_login_required', {
+        article_id: bookmarkArticle._id,
+      });
+      return;
+    }
+
+    const wasBookmarked = bookmarked;
+
+    // toggleBookmark(bookmarkArticle);
+    dispatch(toggleBookmark(bookmarkArticle));
+  
+    logEvent(wasBookmarked ? 'bookmark_removed' : 'bookmark_added', {
+      article_id: bookmarkArticle._id,
+      category: bookmarkArticle.category,
+      origin: origin ?? 'Unknown',
+    });
+    showToast({
+      type: wasBookmarked ? 'info' : 'success',
+      title: wasBookmarked
+        ? 'Removed from bookmarks'
+        : 'Saved to bookmarks',
+    });
+  };
+
+  const handleGoogleLogin = useCallback(async () => {
+    logEvent('login_started', {
+      method: 'google',
+    });
+    log('Google login started');
+    try {
+      const result = await signInWithGoogle();
+  
+      if (!result?.user?.email) {
+        setShowAuthModal(false);
+        return;
+      }
+      log('Google authentication successful');
+      const tokens = await GoogleSignin.getTokens();
+
+if (!tokens?.accessToken) {
+  throw new Error('Google access token was not available');
+}
+
+devLog('Google access token available:', true);
+
+const response = await signInToBackendWithGoogle({
+  accessToken: tokens.accessToken,
+});
+  
+      devLog('Backend Google login:', response);
+  
+      if (response?.success) {
+        logEvent('login_success', {
+          method: 'google',
+        });
+        log('Backend authentication successful');
+        dispatch(
+          setAuth({
+            token: response.token,
+            user: response.user,
+          }),
+        );
+        setUserId(String(response.user.id));
+        setShowAuthModal(false);
+  
+        if (pendingBookmark) {
+          // toggleBookmark(pendingBookmark);
+          const alreadyBookmarked = store.getState().bookmarks.items.some(
+            item => item._id === pendingBookmark._id,
+          );
+          
+          if (!alreadyBookmarked) {
+            dispatch(toggleBookmark(pendingBookmark));
+          }
+
+  logEvent('bookmark_added', {
+    article_id: pendingBookmark._id,
+    category: pendingBookmark.category,
+    origin: origin ?? 'Unknown',
+  });
+          setPendingBookmark(null);
+  
+          setTimeout(() => {
+            showToast({
+              type: 'success',
+              title: 'Login successful',
+              message: 'Your article has been saved to bookmarks.'
+            })
+          }, 300);
+        }
+        log('User session established');
+        devLog('Authentication successful');
+      }
+    } catch (error) {
+      logEvent('login_failed', {
+        method: 'google',
+      });
+      setShowAuthModal(false)
+      showToast({
+        type: 'error',
+        title: "Something Went Wrong, Please try again",
+      })
+      console.error('Google login failed:', error);
+    }
+  }, [dispatch, pendingBookmark, origin]);
+  
 
   return (
     <View
       style={[
         styles.card,
-        { backgroundColor: theme == 'dark' ? 'black' : 'white' },
+        {backgroundColor: isDark ? '#1A1A1A' : '#fff', },
       ]}
     >
       {/* origin = "ReadMore" */}
-      <Image source={{ uri: useThisArticle.imageUrl }} style={styles.image} />
+      <View style={styles.imageContainer}>
+  {imageLoading && (
+    <View
+      style={[
+        styles.imagePlaceholder,
+        {
+          backgroundColor: isDark ? '#2A2A2A' : '#E9E9E9',
+        },
+      ]}
+    />
+  )}
 
-      <Text style={styles.category}>
-        {useThisArticle?.category?.toUpperCase()}
-      </Text>
+  <FastImage
+    source={{
+      uri: useThisArticle.imageUrl,
+      priority: FastImage.priority.normal,
+      cache: FastImage.cacheControl.web,
+    }}
+    style={styles.image}
+    resizeMode={FastImage.resizeMode.cover}
+    onLoadStart={() => setImageLoading(true)}
+    onLoad={() => setImageLoading(false)}
+    onError={() => setImageLoading(false)}
+  />
+</View>
 
-      <Text style={styles.title}>{useThisArticle?.title}</Text>
+      <Text
+  style={[
+    styles.category,
+    {
+      color: '#007AFF',
+    },
+  ]}
+>
+  {useThisArticle?.category?.toUpperCase()}
+</Text>
 
-      <Text style={styles.summary}>{useThisArticle?.summary}</Text>
+<Text
+  style={[
+    styles.title,
+    {
+      color: isDark ? '#fff' : '#000',
+    },
+  ]}
+>
+  {useThisArticle?.title}
+</Text>
+
+<Text
+  style={[
+    styles.summary,
+    {
+      color: isDark ? '#ccc' : '#444',
+    },
+  ]}
+>
+  {useThisArticle?.summary}
+</Text>
 
       {/* ACTION BUTTONS */}
       <View style={styles.actions}>
         <View>
           {!!useThisArticle?.createdAt && (
-            <Text style={styles.date}>
-              {new Date(useThisArticle.createdAt).toDateString()}
-            </Text>
+         <Text
+  style={[
+    styles.date,
+    {
+      color: isDark ? '#999' : '#666',
+    },
+  ]}
+>
+  {new Date(useThisArticle.createdAt).toDateString()}
+</Text>
           )}
           {!!useThisArticle?.createdAt && (
-            <Text style={styles.date}>{timeAgo(useThisArticle.createdAt)}</Text>
+            <Text
+            style={[
+              styles.date,
+              {
+                color: isDark ? '#999' : '#666',
+              },
+            ]}
+          >
+            {timeAgo(useThisArticle.createdAt)}
+          </Text>
           )}
         </View>
 
         <View style={styles.actions}>
           <TouchableOpacity onPress={handleShare}>
-            <Icon name="share-social-outline" size={24} color="#555" />
+            <Icon name="share-social-outline" size={24} color={isDark ? '#ccc' : '#555'} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => bookmarkArticle && toggleBookmark(bookmarkArticle)}
+            onPress={handleBookmark}
+            // onPress={ signInWithGoogle}
           >
             <Icon
               name={bookmarked ? 'bookmark' : 'bookmark-outline'}
               // name={isBookmarked ? "bookmark" : "bookmark-outline"}
               size={26}
-              color={'#555'}
-              // color={isBookmarked ? "#007AFF" : "#555"}
+              color={isDark ? '#ccc' : '#555'}
             />
           </TouchableOpacity>
         </View>
@@ -156,14 +368,23 @@ export default function NewsCard({
           </TouchableOpacity>
         )}
       </View>
+
+      <AuthRequiredModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onGoogleLogin={handleGoogleLogin}
+      />
     </View>
   );
 }
 
+
+
+export default React.memo(NewsCard)
+
 const styles = StyleSheet.create({
   card: {
     marginBottom: 18,
-    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 16,
     elevation: 3,
@@ -222,5 +443,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  imageContainer: {
+    width: '100%',
+    height: 220,
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  
+  imagePlaceholder: {
+    ...StyleSheet.absoluteFillObject,
   },
 });

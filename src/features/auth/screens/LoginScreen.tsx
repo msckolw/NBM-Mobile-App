@@ -4,9 +4,13 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Input from "../../../components/common/Input";
 import { loginApi } from "../../../api/auth";
-import { useAuthStore } from "../../../store/AuthStore";
-import Toast from "react-native-toast-message";
-import RegisterScreen from "./RegisterScreen";
+// import { useAuthStore } from "../../../store/AuthStore";
+import { devLog } from "../../../utils/devLog";
+import {useDispatch} from 'react-redux';
+import type {AppDispatch} from '../../../store';
+import {setAuth} from '../store/authslice';
+import { showToast } from "../../../services/ui/toastService";
+
 
 const schema = yup.object({
   email: yup.string().email().required(),
@@ -18,19 +22,30 @@ export default function LoginScreen({ navigation }) {
     resolver: yupResolver(schema),
   });
 
-  const setAuth = useAuthStore((s) => s.setAuth);
+  // const setAuth = useAuthStore((s) => s.setAuth);
+  const dispatch = useDispatch<AppDispatch>();
 
   const onSubmit = async (data) => {
     try {
       const res = await loginApi(data.email, data.password);
-      Alert.alert("LoginSuccessfull")
-      console.log("res?.data?.token", res?.data?.token)
-      setAuth(res?.data?.user, res?.data?.token);
+      showToast({
+        type: 'success',
+        title: 'Login successful',
+        message: 'Welcome back!',
+      });
+      devLog("res?.data?.token", res?.data?.token)
+      dispatch(
+        setAuth({
+          user: res?.data?.user,
+          token: res?.data?.token,
+        }),
+      );
+      // setAuth(res?.data?.user, res?.data?.token);
     } catch (err) {
-      console.log("loginFailed error:", err)
-        Toast.show({
-            type: "error",
-            text1: "Login failed"
+      devLog("loginFailed error:", err)
+          showToast({
+            type: 'error',
+            title: "Login failed",
           });
     }
   };

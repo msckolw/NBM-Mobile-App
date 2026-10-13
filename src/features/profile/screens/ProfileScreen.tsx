@@ -1,74 +1,298 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import useAuthStore from '../../../store/AuthStore';
-import { useThemeStore } from '../../../store/ThemeStore';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../../store/index';
+import { logout } from '../../auth/store/authslice';
+import { useCallback } from 'react';
+import { setAuth } from '../../auth/store/authslice';
+import { signInToBackendWithGoogle } from '../../../api/auth';
+import { signInWithGoogle, googleLogout } from '../../../services/auth/googleAuth';
+import { log, setUserId } from '../../../services/monitoring/crashlytics';
+import { logEvent } from '../../../services/monitoring/analytics';
+import { devLog } from "../../../utils/devLog";
+import { useTheme } from '../../../context/ThemeContext';
+import { showToast } from '../../../services/ui/toastService';
+import ConfirmationModal from '../../../components/common/ConfirmationModal';
+
+
+
 
 const Profile = () => {
-  const logout = () => {
-    console.log("logout called")
-    // useAuthStore(s => s.logout);
-  }
- 
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, token } = useSelector(
+    (state: RootState) => state.auth,
+  );
+  
+  const {theme} = useTheme();
   const navigation = useNavigation()
+  
+
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+
+  const handleGoogleLogin = async ()=> {
+    console.log("calling goole")
+    logEvent('login_started', {
+      method: 'google',
+    });
+  
+    log('Google login started');
+  
+    try {
+      const result = await signInWithGoogle();
+  
+      if (!result?.user?.email) {
+        // setShowAuthModal(false);
+        return;
+      }
+  
+      log('Google authentication successful',);
+
+      const response = await signInToBackendWithGoogle({
+        accessToken: result.accessToken,
+      });
+  
+      devLog('Backend Google login:', result, response);
+  
+      if (response?.success) {
+        logEvent('login_success', {
+          method: 'google',
+        });
+  
+        log('Backend authentication successful');
+  
+        dispatch(
+          setAuth({
+            token: response.token,
+            user: response.user,
+          }),
+        );
+  
+        setUserId(String(response.user.id));
+        showToast({
+          type: 'success',
+          title: 'Login successful',
+          message: 'You have been successfully logged in.'
+        })
+  
+        log('User session established');
+      }
+    } catch (error) {
+      logEvent('login_failed', {
+        method: 'google',
+      });
+  
+      console.error('Google login failed:', error);
+      showToast({
+        type: 'error',
+        title: 'Login failed',
+        message: 'Unable to login with Google. Please try again.'
+      })
+    }
+  }
+  ;
+
+
+
+  const confirmLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleLogout = async () => {
+    await googleLogout();
+  
+    dispatch(logout());
+    showToast({
+      type: 'success',
+      title: 'Logged out',
+      message: 'You have been successfully logged out.'
+    })
+    
+  };
+
+
+
 
   return (
-    <View style={{ padding: 15, margin:5 }}>
-   
-      <TouchableOpacity 
-      style={{width:'100%', height:50, borderWidth:1, justifyContent:'center', alignItems:"center", marginBottom: 5}}
-      onPress={()=>navigation.navigate('Settings')}>
-        <Text style={{color:"#000"}}>Settings</Text>
-      </TouchableOpacity>
+    <SafeAreaView
+    edges={['bottom']}
+    style={{
+      flex: 1,
+      backgroundColor: theme === 'light' ? '#FFFFFF' : '#000000',
+    }}
+  >
+    <View style={{ padding: 16 }}>
   
-      {/* <TouchableOpacity 
-       style={{width:'100%', height:50, borderWidth:1, justifyContent:'center', alignItems:"center", marginBottom: 5}}
-        onPress={() =>
-          navigation.navigate("WebViewScreen", {
-            url: "https://www.thenobiasmedia.com/privacy-policy",
-          })
-        }
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Settings')}
+        style={{
+          height: 56,
+          borderRadius: 14,
+          backgroundColor: theme === 'light' ? '#F5F5F5' : '#1A1A1A',
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+        }}
+      >
+        <Icon
+          name="settings-outline"
+          size={22}
+          color={theme === 'light' ? '#222' : '#fff'}
+        />
+  
+        <Text
+          style={{
+            flex: 1,
+            marginLeft: 14,
+            fontSize: 16,
+            fontWeight: '600',
+            color: theme === 'light' ? '#000' : '#fff',
+          }}
         >
-        <Text>Privacy Policy</Text>
-       </TouchableOpacity>
-       <TouchableOpacity 
-       style={{width:'100%', height:50, borderWidth:1, justifyContent:'center', alignItems:"center", marginBottom: 5}}
-        onPress={() =>
-          navigation.navigate("WebViewScreen", {
-            url: "https://www.thenobiasmedia.com/terms-conditions",
-          })
-        }
-        >
-        <Text>Terms And Conditions</Text>
-       </TouchableOpacity>
-       <TouchableOpacity 
-       style={{width:'100%', height:50, borderWidth:1, justifyContent:'center', alignItems:"center", marginBottom: 5}}
-        onPress={() =>
-          navigation.navigate("WebViewScreen", {
-            url: "https://www.thenobiasmedia.com/about",
-          })
-        }
-        >
-        <Text>About Us</Text>
-       </TouchableOpacity>
-       <TouchableOpacity 
-       style={{width:'100%', height:50, borderWidth:1, justifyContent:'center', alignItems:"center", marginBottom: 5}}
-        onPress={() =>
-          navigation.navigate("WebViewScreen", {
-            url: "https://www.thenobiasmedia.com/contact",
-          })
-        }
-        >
-        <Text>Contact Us</Text>
-       </TouchableOpacity> */}
-
-       <TouchableOpacity 
-      style={{width:'100%', height:50, borderWidth:1, justifyContent:'center', alignItems:"center"}}
-      onPress={logout}>
-        <Text style={{color:"#000"}}>Logout</Text>
+          Settings
+        </Text>
+  
+        <Icon
+          name="chevron-forward"
+          size={20}
+          color={theme === 'light' ? '#777' : '#aaa'}
+        />
       </TouchableOpacity>
-      
+
+
+   
+
+      {token ? (
+  <TouchableOpacity
+    onPress={confirmLogout}
+    style={{
+      height: 56,
+      borderRadius: 14,
+      backgroundColor: theme === 'light' ? '#F5F5F5' : '#1A1A1A',
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      marginTop: 10,
+    }}
+  >
+    <Icon
+      name="log-out-outline"
+      size={22}
+      color={theme === 'light' ? '#222' : '#fff'}
+    />
+
+    <Text
+      style={{
+        flex: 1,
+        marginLeft: 14,
+        fontSize: 16,
+        fontWeight: '600',
+        color: theme === 'light' ? '#000' : '#fff',
+      }}
+    >
+      Logout
+    </Text>
+
+    <Icon
+      name="chevron-forward"
+      size={20}
+      color={theme === 'light' ? '#777' : '#aaa'}
+    />
+  </TouchableOpacity>
+) : (
+  <TouchableOpacity
+    onPress={handleGoogleLogin}
+    style={{
+      height: 56,
+      borderRadius: 14,
+      backgroundColor: theme === 'light' ? '#F5F5F5' : '#1A1A1A',
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      marginTop: 10,
+    }}
+  >
+    <Icon
+      name="logo-google"
+      size={22}
+      color={theme === 'light' ? '#222' : '#fff'}
+    />
+
+    <Text
+      style={{
+        flex: 1,
+        marginLeft: 14,
+        fontSize: 16,
+        fontWeight: '600',
+        color: theme === 'light' ? '#000' : '#fff',
+      }}
+    >
+      Login with Google
+    </Text>
+
+    <Icon
+      name="chevron-forward"
+      size={20}
+      color={theme === 'light' ? '#777' : '#aaa'}
+    />
+  </TouchableOpacity>
+)}
+
+{/* <TouchableOpacity
+        onPress={() => navigation.navigate('Donation')}
+        style={{
+          height: 56,
+          borderRadius: 14,
+          backgroundColor: theme === 'light' ? '#F5F5F5' : '#1A1A1A',
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+          marginTop:10
+        }}
+      >
+        <Icon
+          name="settings-outline"
+          size={22}
+          color={theme === 'light' ? '#222' : '#fff'}
+        />
+  
+        <Text
+          style={{
+            flex: 1,
+            marginLeft: 14,
+            fontSize: 16,
+            fontWeight: '600',
+            color: theme === 'light' ? '#000' : '#fff',
+          }}
+        >
+          Donation
+        </Text>
+  
+        <Icon
+          name="chevron-forward"
+          size={20}
+          color={theme === 'light' ? '#777' : '#aaa'}
+        />
+      </TouchableOpacity> */}
+  <ConfirmationModal
+  visible={showLogoutModal}
+  title="Logout"
+  message="Are you sure you want to logout?"
+  confirmText="Logout"
+  cancelText="Cancel"
+  destructive
+  onCancel={() => setShowLogoutModal(false)}
+  onConfirm={() => {
+    setShowLogoutModal(false);
+    handleLogout();
+  }}
+/>
     </View>
+  </SafeAreaView>
   );
 };
 

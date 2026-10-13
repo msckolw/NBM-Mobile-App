@@ -1,0 +1,32 @@
+import api from "./client";
+import { devLog } from "../utils/devLog";
+
+
+
+export const loginApi = async(email:string, password:string)=>{
+    const res = await api.post("/auth/login", {email, password})
+    devLog("LoginRes:", res)
+    return res
+}
+
+export const registerApi = async (payload: {
+  name: string;
+  email: string;
+  password: string;
+}) => {
+  const res = await api.post("/register", payload);
+
+  return res;
+};
+
+export const signInToBackendWithGoogle = async ({
+  accessToken,
+}: {
+  accessToken: string;
+}) => {
+  const response = await api.post('/auth/googleSignIn', {
+    accessToken,
+  });
+
+  return response.data;
+};

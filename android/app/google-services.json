@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "867532863299",
+    "project_id": "the-nbm-60508",
+    "storage_bucket": "the-nbm-60508.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:867532863299:android:9dbbf90adee5dca13221f6",
+        "android_client_info": {
+          "package_name": "com.nobiasnews"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnItLzYGfUH1VyCixoHu56a5L2r2kgYrs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

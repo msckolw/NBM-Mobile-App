@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getArticle } from "../../../api/news";
+import { devLog } from "../../../utils/devLog";
+
 
 
 
@@ -10,7 +12,7 @@ export const useDetailedNews = (id?: string) => {
     const [error, setError] = useState<any>(null);
     const [loading, setLoading] = useState(true)
 
-// console.log("ArticleDataadw:", data)
+// devLog("ArticleDataadw:", data)
 
 
     useEffect(()=>{
@@ -27,18 +29,18 @@ export const useDetailedNews = (id?: string) => {
         try{
             setLoading(true)
             setError(null)
-            console.log("adpi idL", id)
+            devLog("adpi idL", id)
             const res = await getArticle(id)
             if(res !== null)
             {
-                // console.log("response from Api:", res)
+                // devLog("response from Api:", res)
                 setData(res)
                 // const sanitized = (res.articles || []).filter(Boolean);
                 // setData(sanitized);
             }
         }catch(err)
         {
-            console.log("Error from Api:", err)
+            devLog("Error from Api:", err)
             setError(err)
         }finally{
             setLoading(false)

@@ -1,31 +1,71 @@
-import { TextInput, View, Text, StyleSheet } from "react-native";
+import {TextInput, View, Text, StyleSheet, TextInputProps} from 'react-native';
+import {useTheme} from '../../context/ThemeContext';
 
-export default function Input({ label, error, ...props }) {
+type InputProps = TextInputProps & {
+  label: string;
+  error?: string;
+};
+
+export default function Input({label, error, ...props}: InputProps) {
+  const {theme} = useTheme();
+  const isDark = theme === 'dark';
+
   return (
-    <View style={{ marginBottom: 16 }}>
-      <Text style={styles.label}>{label}</Text>
+    <View style={styles.container}>
+      <Text
+        style={[
+          styles.label,
+          {color: isDark ? '#fff' : '#111'},
+        ]}>
+        {label}
+      </Text>
 
       <TextInput
-        style={[styles.input, error && styles.errorBorder]}
-        placeholderTextColor="#999"
         {...props}
+        placeholderTextColor={isDark ? '#888' : '#999'}
+        style={[
+          styles.input,
+          {
+            color: isDark ? '#fff' : '#111',
+            backgroundColor: isDark ? '#1c1c1c' : '#fff',
+            borderColor: error
+              ? '#dc2626'
+              : isDark
+              ? '#444'
+              : '#ccc',
+          },
+        ]}
       />
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  label: { fontSize: 14, marginBottom: 6, color: "#000" },
+  container: {
+    marginBottom: 16,
+  },
+
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 10,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     fontSize: 16,
-    color:"#000",
   },
-  errorBorder: { borderColor: "red" },
-  errorText: { color: "red", marginTop: 4, fontSize: 12 },
+
+  errorText: {
+    color: '#dc2626',
+    marginTop: 4,
+    fontSize: 12,
+  },
 });

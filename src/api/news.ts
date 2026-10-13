@@ -1,4 +1,6 @@
 import api from "./client";
+import { devLog } from "../utils/devLog";
+
 
 const url = "/news?category=all"
 
@@ -31,11 +33,11 @@ export const getNewsByCategoryPaged = async (cat: string, page: number = 1) => {
 
 export const getArticle = async (id: string, source: boolean = false) => {
   try {
-    console.log("Getting ID here:", id)
+    devLog("Getting ID here:", id)
     const res = await api.get(`/news/${id}?source=${source}`);
     return res?.data;
   } catch (error:any) {
-    console.log("errorFrom Articles:", error)
+    devLog("errorFrom Articles:", error)
     throw new Error(error.response?.data?.message || 'Failed to fetch article');
   }
 };

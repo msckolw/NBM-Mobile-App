@@ -1,25 +1,62 @@
-import { NavigationContainer } from "@react-navigation/native";
-import useAuthStore from "../../store/AuthStore";
-import AuthStack from "./AuthStack";
+import { NavigationContainer, createNavigationContainerRef } from "@react-navigation/native";
 import AppStack from "./AppStack";
    import { useAppSelector } from "../../store/hooks";
+   import { useEffect, useRef } from 'react';
+import { logEvent } from '../../services/monitoring/analytics';
+import { devLog } from "../../utils/devLog";
 
 
-export default function RootNavigator()
-{
-    // const token = true;
-    // const token = useAuthStore((s)=>s.token)
 
- const auth = useAppSelector((state) => state.auth);
-console.log("RootNavigatorAuth:", auth);
+export const navigationRef = createNavigationContainerRef();
 
-const token = useAppSelector((state) => state.auth.token);
-console.log("RootNavigator token:", token);
+export default function RootNavigator() {
 
-    return (
-        <NavigationContainer>
-            {/* {token ? <AppStack /> : <AuthStack />} */}
-            <AppStack />
-        </NavigationContainer>
-    )
+  devLog(
+    `root Render | +${
+      Date.now() - globalThis.__APP_START_TIME__
+    }ms`,
+  );
+    
+    const token = useAppSelector((state) => state.auth.token);
+    const routeNameRef = useRef<string | undefined>(undefined);
+
+
+    useEffect(() => {
+      devLog(
+        `Root Mounted | +${
+          Date.now() - globalThis.__APP_START_TIME__
+        }ms`,
+      );
+    }, []);
+
+  return (
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        devLog(
+          `⏱️ [NAV] Ready | +${
+            Date.now() - globalThis.__APP_START_TIME__
+          }ms`,
+        );
+      
+        routeNameRef.current =
+          navigationRef.getCurrentRoute()?.name;
+      }}
+      onStateChange={async () => {
+        const currentRouteName =
+          navigationRef.getCurrentRoute()?.name;
+      
+        if (routeNameRef.current !== currentRouteName) {
+          await logEvent('screen_view', {
+            screen_name: currentRouteName,
+          });
+
+          routeNameRef.current = currentRouteName;
+        }
+      }}
+    >
+        {/* {token ? <AppStack /> : <AuthStack />} */}
+      <AppStack />
+    </NavigationContainer>
+  );
 }

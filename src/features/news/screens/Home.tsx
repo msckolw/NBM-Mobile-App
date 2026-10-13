@@ -1,185 +1,318 @@
-import React,{useEffect, useState} from "react";
-import { View , Text, ActivityIndicator, FlatList, Alert} from "react-native";
-import { getNews } from "../../../api/news";
-import NewsCard from "../components/NewsCard";
-import SkeletonCard from "../components/SkeletonCard";
-import { useBookmarkStore } from "../../../store/BookmarkStore";
-import { useThemeStore } from "../../../store/ThemeStore";
-import TopicTabs from "../components/TopicTabs";
-import { useNavigation } from "@react-navigation/native";
-import ReactNativeHapticFeedback from "react-native-haptic-feedback";
-
-// Safe NetInfo import
-const getNetInfo = () => {
-  try {
-    return require("@react-native-community/netinfo").default;
-  } catch (error) {
-    console.warn("NetInfo not available");
-    return {
-      addEventListener: (callback: any) => {
-        callback({ isConnected: true });
-        return () => {};
-      },
-      fetch: async () => ({ isConnected: true }),
-    };
-  }
-};
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, FlatList, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import NewsCard from '../components/NewsCard';
+import {useTheme} from '../../../context/ThemeContext';
+import TopicTabs from '../components/TopicTabs';
+import { useNavigation } from '@react-navigation/native';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import useNews from '../hooks/useNews';
+import SkeletonCard from '../components/SkeletonCard';
+import { logEvent } from '../../../services/monitoring/analytics';
+import { AnalyticsEvents } from '../../../services/monitoring/analyticsEvents';
+import { devLog } from "../../../utils/devLog";
+import FastImage from '@d11/react-native-fast-image';
 
 
-const Home = ()=>{
+
+const Home = () => {
+  devLog(
+    `⏱️ [HOME] Component render | +${(
+      Date.now() - globalThis.__APP_START_TIME__
+    ).toFixed(0)}ms`,
+  );
+  // const insets = useSafeAreaInsets();
+  const {theme, isThemeReady} = useTheme();
+  const insets = useSafeAreaInsets();
+  const [selectedTopic, setSelectedTopic] = useState('All');
+  const firstArticleRendered = useRef(false);
 
   const navigation = useNavigation();
+  const {
+    loading,
+    loadingMore,
+    articles,
+    totalPages,
+    error,
+    refreshing,
+    onRefresh,
+    loadMore,
+    page,
+  } = useNews(selectedTopic);;
 
-
-    // const [news, setNews] = useState([]);
-    const [articles, setArticles] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [totalPages, setTotalPages] = useState(1)
-    const [page, setPage] = useState(1)
-    const [refreshing, setRefreshing] = useState(false);
-    const [isOffline, setIsOffline] = useState(false);
-    const [selectedTopic, setSelectedTopic] = useState("All");
-
-
-    console.log("isOffline", isOffline)
-
-    console.log("NewsFromnbackend", articles)
-
-
-
-    useEffect(()=>{
-        fetchNews()
-    }, [])
-
-
-useEffect(() => {
-    const NetInfo = getNetInfo();
-    const unsubscribe = NetInfo.addEventListener((state: any) => {
-      setIsOffline(!state.isConnected);
-    });
+  console.log("Error Fetching nwes", error)
   
-    return () => unsubscribe();
+
+  devLog(
+    'THEME:',
+    theme,
+    'READY:',
+    isThemeReady,
+  );
+  
+ 
+
+  // const safeArticles = (articles || []).filter(item => item && item?._id);
+
+
+  const renderSkeletonPlaceholder = useCallback(
+    () => <SkeletonCard />,
+    [],
+  );
+
+
+  useEffect(() => {
+    if (!articles.length) {
+      return;
+    }
+  
+    const imageUrls = articles
+      .slice(0, 5)
+      .map(article => article?.imageUrl)
+      .filter(Boolean);
+  
+    imageUrls.forEach(url => {
+      FastImage.preload([
+        {
+          uri: url,
+          priority: FastImage.priority.high,
+        },
+      ]);
+    });
+  }, [articles]);
+
+
+  useEffect(() => {
+    devLog(
+      `Home : Mounted | +${(
+        Date.now() - globalThis.__APP_START_TIME__
+      ).toFixed(0)}ms`,
+    );
   }, []);
 
-    const toggleBookmark = useBookmarkStore((s) => s.toggleBookmark);
-    const theme = useThemeStore((s:any) => s.theme);
-
-    console.log("themetoggle:", theme)
-
-    const safeArticles = (articles || []).filter(
-        (item) => item && item?._id
-      );
-      
-
-
-    const fetchNews = async () => {
-        try {
-          const res = await getNews(page);
-          const sanitized = (res.articles || []).filter(Boolean);
-          setArticles(sanitized);
-        } catch (error) {
-          console.log("Error fetching News", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      
 
 
 
-    const onRefresh = async () =>{
-        setRefreshing(true)
-        setPage(1)
-
-        try{
-            const res= await getNews(1)
-            setArticles(res.articles || [])
-        }catch(err)
-        {
-            console.log(err)
-        }
-        ReactNativeHapticFeedback.trigger("impactLight")
-        setRefreshing(false);
-    }
-
-    const loadMore = ()=>{
-        console.log("loadingMore")
-        if(page < totalPages)
-        {
-            setPage((prev )=> prev + 1) 
-        }
-    }
-
-
-    if(loading && page === 1 )
-    {
-        return (
-            <View style={{flex:1,justifyContent: "center", alignItems: "center"}}>
-                <ActivityIndicator size = "large" />
-                {/* {[1,2,3,4,5].map((_, i)=>(
-                    <SkeletonCard key = {i}/>
-                ))} */}
-            </View>
-        )
-    }
-    
-    {isOffline && (
-        <View style={{ padding: 6, backgroundColor: "#ffcc00" }}>
-          <Text style={{ color: "#000" }}>You're offline — showing saved news</Text>
-        </View>
-      )}
-      
-
-
-    const renderItem = (item:any)=> {
-        console.log("ItemId:", item?.item?._id)
-        return (
-            <NewsCard 
-            article = {item} 
-            origin="Home"
-            title = "Read More"
-            secondaryTitle="News Sources"
-            theme={theme} 
-            onPress={()=>navigation.navigate('ReadMore',{id:item?.item?._id, origin:"ReadMore"})}
-            onSecondaryPress={() => navigation.navigate('Sources', { id: item?.item?._id })}
-            />
-        )
-    }
 
 
 
-// toggleBookmark(articles);
+  const handleArticlePress = useCallback(
+    (id: string, category?: string) => {
+      logEvent(AnalyticsEvents.ARTICLE_VIEWED, {
+        article_id: id,
+        source: 'home_feed',
+        origin: 'Home',
+      });
+  
+      navigation.navigate('ReadMore', {
+        id,
+        origin: 'ReadMore',
+        category,
+      });
+    },
+    [navigation],
+  );
+
+
+  const handleSourcesPress = useCallback(
+    (id: string) => {
+      navigation.navigate('Sources' as never, {
+        id,
+      } as never);
+    },
+    [navigation],
+  );
+
+  
+
+  const renderItem = useCallback(({item}: {item: any})=>{
 
     return (
-      <View style={{ flex: 1, backgroundColor: theme === "light" ? "#fff" : "#000" }}>
+      <NewsCard
+      article={item}
+      origin="Home"
+      title="Read More"
+      secondaryTitle="News Sources"
+      theme={theme}
+      onPress={() => handleArticlePress(item._id, item.category)}
+      onSecondaryPress={() => handleSourcesPress(item._id)}
+    />
+    );
+  }, [theme, handleArticlePress, handleSourcesPress])
+
+
+
+  // if (loading && page === 1) {
+  //   return (
+  //     <SafeAreaView
+  //     edges={['top']}
+  //     style={{
+  //       flex: 1,
+  //       backgroundColor: theme === 'light' ? '#fff' : '#000',
+  //     }}
+  //   >
   
-  {/* Header must NOT use flex */}
-  <TopicTabs
-    selected={selectedTopic}
-    onPress={(topic) => {
-      ReactNativeHapticFeedback.trigger("impactLight");
-      setSelectedTopic(topic);
-      if (topic === "All") {
-        return;
-      }
-      navigation.navigate('CategoryFeed', { topic });
+  //       <TopicTabs theme={theme} selected={selectedTopic} onPress={() => {}} />
+
+  //       <FlatList
+  //         data={[1, 2, 3, 4, 5]}
+  //         keyExtractor={item => item.toString()}
+  //         renderItem={renderSkeletonPlaceholder}
+  //         showsVerticalScrollIndicator={false}
+  //       />
+  //     </SafeAreaView>
+  //   );
+  // }
+
+  
+
+  if (!loading && error && articles.length === 0) {
+    return (
+      <SafeAreaView
+        edges={['top']}
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: theme === 'light' ? '#fff' : '#000',
+        }}
+      >
+        <View
+  style={{
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  }}
+>
+<Text
+  style={{
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme === 'light' ? '#111' : '#fff',
+    marginBottom: 8,
+  }}>
+  {error === 'NO_NETWORK'
+    ? 'No internet connection'
+    : 'Unable to load news'}
+</Text>
+
+<Text
+  style={{
+    fontSize: 15,
+    color: theme === 'light' ? '#666' : '#aaa',
+    textAlign: 'center',
+    marginBottom: 20,
+  }}>
+  {error === 'NO_NETWORK'
+    ? 'Please check your internet connection and try again.'
+    : 'Something went wrong while loading the latest news.'}
+</Text>
+
+  <TouchableOpacity
+    onPress={onRefresh}
+    style={{
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 8,
+      backgroundColor: '#007AFF',
     }}
-  />
-
-  <FlatList
-    showsVerticalScrollIndicator={false}
-    data={safeArticles.filter(item => item)}
-    keyExtractor={(item) => item?._id.toString()}
-    renderItem={renderItem}
-    onEndReached={loadMore}
-    onRefresh={onRefresh}
-    refreshing={refreshing}
-  />
-
+  >
+    <Text
+      style={{
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '600',
+      }}
+    >
+      Try Again
+    </Text>
+  </TouchableOpacity>
 </View>
+      </SafeAreaView>
+    );
+  }
 
-    )
-}
+  // toggleBookmark(articles);
 
+  return (
+    <View
+    style={{
+      flex: 1,
+      // paddingTop: insets.top,
+      backgroundColor: theme === 'light' ? '#fff' : '#000',
+    }}>
+      {/* Header must NOT use flex */}
+      <TopicTabs
+  selected={selectedTopic}
+  theme={theme}
+  onPress={topic => {
+    ReactNativeHapticFeedback.trigger('impactLight');
+    setSelectedTopic(topic);
+    logEvent('category_selected', {
+      category: topic,
+    });
+  }}
+/>
+
+
+
+<FlatList
+  showsVerticalScrollIndicator={false}
+  data={loading && page === 1 ? [1, 2, 3, 4, 5] : articles}
+  keyExtractor={(item, index) =>
+    loading && page === 1 ? `skeleton-${index}` : item._id.toString()
+  }
+  renderItem={
+    loading && page === 1
+      ? renderSkeletonPlaceholder
+      : renderItem
+  }
+  onEndReached={loading ? undefined : loadMore}
+  onRefresh={onRefresh}
+  refreshing={refreshing}
+  initialNumToRender={5}
+  maxToRenderPerBatch={10}
+  windowSize={5}
+  // removeClippedSubviews
+  ListEmptyComponent={
+    !loading && !refreshing && !error ? (
+      <View style={styles.emptyContainer}>
+        <Text style={[styles.emptyTitle, { color: theme.text }]}>
+          No news available
+        </Text>
+  
+        <Text style={[styles.emptyDescription, { color: theme.textSecondary }]}>
+          There are no articles in this category yet. Try another topic.
+        </Text>
+      </View>
+    ) : null
+  }
+/>
+    </View>
+  );
+};
 
 export default Home;
+
+
+export const styles = StyleSheet.create({
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 48,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  emptyDescription: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+})

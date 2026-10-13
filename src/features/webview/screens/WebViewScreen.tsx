@@ -1,8 +1,8 @@
-import React from "react";
-import { WebView } from "react-native-webview";
+import React from 'react';
+import {WebView} from 'react-native-webview';
 
-export default function WebViewScreen({ route }) {
-  const { url } = route?.params;
+export default function WebViewScreen({route}) {
+  const {url, title} = route?.params;
 
-  return <WebView source={{ uri: url }} />;
+  return <WebView source={{uri: url}} />;
 }

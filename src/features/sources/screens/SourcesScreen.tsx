@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Ionicons";
-import { useThemeStore } from "../../../store/ThemeStore";
 import { getArticle } from "../../../api/news";
+import { logEvent } from '../../../services/monitoring/analytics';
+import { useTheme } from "../../../context/ThemeContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type SourceItem = {
   source_type?: string;
@@ -29,7 +31,7 @@ const getPoliticalColor = (sourceType: string) => {
 export default function SourcesScreen(props: any) {
   const { id } = props?.route?.params || {};
   const navigation = useNavigation();
-  const theme = useThemeStore((s: any) => s.theme);
+  const {theme} = useTheme();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
@@ -47,7 +49,10 @@ export default function SourcesScreen(props: any) {
         const res = await getArticle(id, true);
         const src = Array.isArray(res?.source) ? res.source : [];
         setSources(src);
-
+        logEvent('sources_viewed', {
+          article_id: id,
+          source_count: src.length,
+        });
         const nextExpanded: Record<string, boolean> = {};
         for (const s of src) {
           const key = s?.source_type || "Other";
@@ -99,7 +104,12 @@ export default function SourcesScreen(props: any) {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme === "light" ? "#fff" : "#000" }}>
+    <SafeAreaView
+  edges={['top']}
+  style={{
+    flex: 1,
+    backgroundColor: theme === 'light' ? '#fff' : '#000',
+  }}>
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, flexDirection: "row", alignItems: "center" }}>
         <TouchableOpacity onPress={() => (navigation as any).goBack()} style={{ padding: 8, marginRight: 6 }}>
           <Icon name="arrow-back" size={22} color={theme === "light" ? "#000" : "#fff"} />
@@ -151,7 +161,14 @@ export default function SourcesScreen(props: any) {
                       return (
                         <TouchableOpacity
                           key={`${type}-${idx}`}
-                          onPress={() => (navigation as any).navigate("WebViewScreen", { url })}
+                          onPress={() => {
+                            logEvent('source_opened', {
+                              article_id: id,
+                              source_type: type,
+                            });
+                          
+                            (navigation as any).navigate('WebViewScreen', { url });
+                          }}
                           disabled={!url}
                           style={{
                             marginHorizontal: 16,
@@ -179,6 +196,6 @@ export default function SourcesScreen(props: any) {
           })
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
