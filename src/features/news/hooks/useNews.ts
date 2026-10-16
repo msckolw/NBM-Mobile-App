@@ -4,6 +4,7 @@ import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import { getNews, getNewsByCategoryPaged } from '../../../api/news';
 import { recordError } from '../../../services/monitoring/crashlytics';
 import { devLog } from '../../../utils/devLog';
+import { getCachedNews, saveCachedNews } from '../services/newsCache';
 
 type Article = {
   _id: string;
@@ -86,8 +87,19 @@ const useNews = (selectedCategory = 'All') => {
               ];
             });
 
-            setPage(response?.currentPage ?? pageNumber);
-            setTotalPages(response?.totalPages ?? 1);
+            const currentPage = response?.currentPage ?? pageNumber;
+            const nextTotalPages = response?.totalPages ?? 1;
+            
+            setPage(currentPage);
+            setTotalPages(nextTotalPages);
+            
+            void saveCachedNews(category, pageNumber, {
+              articles: nextArticles,
+              currentPage,
+              totalPages: nextTotalPages,
+            });
+            
+            return;
             return;
           } catch (requestError: any) {
             if (currentRequestId !== requestId.current) {
@@ -183,20 +195,50 @@ const useNews = (selectedCategory = 'All') => {
   useEffect(() => {
     requestId.current += 1;
     requestInFlight.current = false;
-
+  
+    let isActive = true;
+  
     setArticles([]);
     setPage(1);
     setTotalPages(1);
     setError(null);
     setLoading(true);
-
-    fetchNews(1, true);
-
+    setLoadingMore(false);
+    setRefreshing(false);
+  
+    const loadNews = async () => {
+      const cached = await getCachedNews<Article>(category, 1);
+  
+      if (!isActive) {
+        return;
+      }
+  
+      if (cached) {
+        setArticles(cached.articles);
+        setPage(cached.currentPage);
+        setTotalPages(cached.totalPages);
+        setLoading(false);
+  
+        devLog('Loaded news from cache', {
+          category,
+          articlesCount: cached.articles.length,
+          cachedAt: cached.cachedAt,
+        });
+      }
+  
+      if (isActive) {
+        void fetchNews(1, true);
+      }
+    };
+  
+    void loadNews();
+  
     return () => {
+      isActive = false;
       requestId.current += 1;
       requestInFlight.current = false;
     };
-  }, [fetchNews]);
+  }, [category, fetchNews]);
 
   const onRefresh = useCallback(async () => {
     if (requestInFlight.current) {
