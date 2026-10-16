@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { store } from '../store';
 import { devLog } from "../utils/devLog";
-import {getCurrentNetworkInfo, getNetworkInfo } from '../services/network/networkInfo';
+import {getCurrentNetworkInfo, getNetworkInfo, initializeNetworkMonitoring } from '../services/network/networkInfo';
 
 
 const baseURL = 'https://nobiasmedia.onrender.com/api';
@@ -16,19 +16,17 @@ const api = axios.create({
   });
 
   api.interceptors.request.use(async config => {
-    const network = getCurrentNetworkInfo();
+    const network = await initializeNetworkMonitoring();
 
     if (
       !network.isConnected ||
       network.isInternetReachable === false
     ) {
-      devLog('API request blocked: No internet connection');
-  
       const error = new Error('You are not connected to the internet.');
       error.name = 'NETWORK_UNAVAILABLE';
-  
-      return Promise.reject(error);
+      throw error;
     }
+  
   
     const token = store.getState().auth.token;
   

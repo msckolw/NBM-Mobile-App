@@ -11,7 +11,7 @@ type Article = {
   [key: string]: any;
 };
 
-type NewsError =
+export type NewsError =
   | 'NO_NETWORK'
   | 'TIMEOUT'
   | 'SERVER_ERROR'
