@@ -4,7 +4,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Input from "../../../components/common/Input";
 import { loginApi } from "../../../api/auth";
-// import { useAuthStore } from "../../../store/AuthStore";
 import { devLog } from "../../../utils/devLog";
 import {useDispatch} from 'react-redux';
 import type {AppDispatch} from '../../../store';
@@ -22,7 +21,6 @@ export default function LoginScreen({ navigation }) {
     resolver: yupResolver(schema),
   });
 
-  // const setAuth = useAuthStore((s) => s.setAuth);
   const dispatch = useDispatch<AppDispatch>();
 
   const onSubmit = async (data) => {
