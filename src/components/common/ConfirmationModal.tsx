@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Modal,
@@ -14,7 +15,7 @@ type ConfirmationModalProps = {
   confirmText?: string;
   cancelText?: string;
   onConfirm: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
   destructive?: boolean;
 };
 
@@ -28,6 +29,8 @@ const ConfirmationModal = ({
   onCancel,
   destructive = false,
 }: ConfirmationModalProps) => {
+  const showCancel = Boolean(onCancel);
+
   return (
     <Modal
       visible={visible}
@@ -40,14 +43,24 @@ const ConfirmationModal = ({
 
           <Text style={styles.message}>{message}</Text>
 
-          <View style={styles.actions}>
-            <Pressable
-              style={styles.cancelButton}
-              onPress={onCancel}>
-              <Text style={styles.cancelText}>{cancelText}</Text>
-            </Pressable>
+          <View
+            style={[
+              styles.actions,
+              !showCancel && styles.actionsWithoutCancel,
+            ]}>
+            {showCancel && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={cancelText}
+                style={styles.cancelButton}
+                onPress={onCancel}>
+                <Text style={styles.cancelText}>{cancelText}</Text>
+              </Pressable>
+            )}
 
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={confirmText}
               style={[
                 styles.confirmButton,
                 destructive && styles.destructiveButton,
@@ -99,6 +112,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 12,
+  },
+
+  actionsWithoutCancel: {
+    justifyContent: 'flex-end',
   },
 
   cancelButton: {

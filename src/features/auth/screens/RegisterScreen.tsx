@@ -4,7 +4,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Input from "../../../components/common/Input";
 import {registerApi} from "../../../api/auth";
-// import { useAuthStore } from "../../../store/AuthStore";
 import { devLog } from "../../../utils/devLog";
 import {useDispatch} from 'react-redux';
 import type {AppDispatch} from '../../../store';
@@ -19,7 +18,6 @@ const schema = yup.object({
 });
 
 export default function RegisterScreen({ navigation }) {
-  // const setAuth = useAuthStore((s) => s.setAuth);
   const dispatch = useDispatch<AppDispatch>();
 
   const {

@@ -8,3 +8,9 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+
+# PayU: optional Google Pay / Wallet classes
+-dontwarn com.google.android.apps.nbu.paisa.inapp.client.api.**
+
+# PayU: legacy Google credentials API
+-dontwarn com.google.android.gms.auth.api.credentials.**

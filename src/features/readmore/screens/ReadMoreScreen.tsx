@@ -12,7 +12,6 @@ import {
 import { useDetailedNews } from '../../news/hooks/DetailedNews';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-// import { useBookmarkStore } from '../../../store/BookmarkStore';
 import { logEvent } from '../../../services/monitoring/analytics';
 import { timeAgo } from '../../../utils/timeAgo';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,7 +37,6 @@ const ReadMore = (props: any) => {
   const { data, loading, error } = useDetailedNews(id);
   const {theme} = useTheme();
   const navigation = useNavigation();
-  // const { toggleBookmark, isBookmarked } = useBookmarkStore();
   const dispatch = useDispatch<AppDispatch>();
 
 const { token } = useSelector((state: RootState) => state.auth);

@@ -11,7 +11,6 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSelector, useDispatch } from 'react-redux';
 
-// import { useBookmarkStore } from '../../../store/BookmarkStore';
 import { timeAgo } from '../../../utils/timeAgo';
 import { type RootState, type AppDispatch, store } from '../../../store';
 import { setAuth } from '../../auth/store/authslice';
@@ -65,10 +64,8 @@ const  NewsCard = ({
   origin,
 }: NewsCardProps) =>{
   const dispatch = useDispatch<AppDispatch>();
-  // const { toggleBookmark, isBookmarked } = useBookmarkStore();
   
   const { user, token } = useSelector((state: RootState) => state.auth);
-  // const { user, token, setAuth } = useAuthStore();
   const [pendingBookmark, setPendingBookmark] =
   useState<BookmarkArticle | null>(null);
 

@@ -1,3 +1,4 @@
+
 import NetInfo, {
   NetInfoState,
 } from '@react-native-community/netinfo';
@@ -14,6 +15,11 @@ let currentNetworkInfo: NetworkInfo = {
   type: 'unknown',
 };
 
+let initializationPromise: Promise<NetworkInfo> | null = null;
+let unsubscribe: (() => void) | null = null;
+let monitoringStarted = false;
+
+
 const mapNetworkState = (state: NetInfoState): NetworkInfo => ({
   isConnected: state.isConnected ?? false,
   isInternetReachable: state.isInternetReachable ?? null,
@@ -22,15 +28,25 @@ const mapNetworkState = (state: NetInfoState): NetworkInfo => ({
 
 export const getNetworkInfo = async (): Promise<NetworkInfo> => {
   const state = await NetInfo.fetch();
-
   currentNetworkInfo = mapNetworkState(state);
-
   return currentNetworkInfo;
 };
 
-export const getCurrentNetworkInfo = (): NetworkInfo => {
-  return currentNetworkInfo;
-};
+
+export const initializeNetworkMonitoring =
+  async (): Promise<NetworkInfo> => {
+    if (!monitoringStarted) {
+      unsubscribe = NetInfo.addEventListener(state => {
+        currentNetworkInfo = mapNetworkState(state);
+      });
+
+      monitoringStarted = true;
+    }
+
+    return getNetworkInfo();
+  };
+
+export const getCurrentNetworkInfo = (): NetworkInfo => currentNetworkInfo;
 
 export const subscribeToNetworkChanges = (
   callback: (network: NetworkInfo) => void,
