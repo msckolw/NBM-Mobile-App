@@ -5,18 +5,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../../store/index';
-import { logout } from '../../auth/store/authslice';
-import { useCallback } from 'react';
-import { setAuth } from '../../auth/store/authslice';
-import { signInToBackendWithGoogle } from '../../../api/auth';
-import { signInWithGoogle, googleLogout } from '../../../services/auth/googleAuth';
-import { log, setUserId } from '../../../services/monitoring/crashlytics';
-import { logEvent } from '../../../services/monitoring/analytics';
+import { googleLogout } from '../../../services/auth/googleAuth';
 import { devLog } from "../../../utils/devLog";
 import { useTheme } from '../../../context/ThemeContext';
 import { showToast } from '../../../services/ui/toastService';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import { authService } from '../../../services/auth/authService';
+import { googleLoginService } from '../../../services/auth/googleLoginService';
 
 
 
@@ -34,62 +29,31 @@ const Profile = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
 
-  const handleGoogleLogin = async ()=> {
-    console.log("calling goole")
-    logEvent('login_started', {
-      method: 'google',
-    });
-  
-    log('Google login started');
-  
+
+  const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithGoogle();
+      const result = await googleLoginService.signIn();
   
-      if (!result?.user?.email) {
-        // setShowAuthModal(false);
+      if (result === 'cancelled') {
         return;
       }
   
-      log('Google authentication successful',);
-
-      const response = await signInToBackendWithGoogle({
-        accessToken: result.accessToken,
+      showToast({
+        type: 'success',
+        title: 'Login successful',
+        message: 'You have been successfully logged in.',
       });
-  
-      devLog('Backend Google login:', result, response);
-  
-      if (response?.success) {
-        logEvent('login_success', {
-          method: 'google',
-        });
-  
-        log('Backend authentication successful');
-  
-        await authService.establishSession(response);
-  
-        setUserId(String(response.user.id));
-        showToast({
-          type: 'success',
-          title: 'Login successful',
-          message: 'You have been successfully logged in.'
-        })
-  
-        log('User session established');
-      }
     } catch (error) {
-      logEvent('login_failed', {
-        method: 'google',
-      });
+      devLog('Google login failed:', error);
   
-      console.error('Google login failed:', error);
       showToast({
         type: 'error',
         title: 'Login failed',
-        message: 'Unable to login with Google. Please try again.'
-      })
+        message: 'Unable to login with Google. Please try again.',
+      });
     }
-  }
-  ;
+  };
+  
 
 
 

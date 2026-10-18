@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Share,
   Alert,
+  StyleSheet,
 } from 'react-native';
 import { useDetailedNews } from '../../news/hooks/DetailedNews';
 import { useNavigation } from '@react-navigation/native';
@@ -16,19 +17,15 @@ import { logEvent } from '../../../services/monitoring/analytics';
 import { timeAgo } from '../../../utils/timeAgo';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { log } from '../../../services/monitoring/crashlytics';
-import { signInWithGoogle } from '../../../services/auth/googleAuth';
-import { signInToBackendWithGoogle } from '../../../api/auth';
 import { AppDispatch, RootState, store } from '../../../store/index';
 import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
 import { devLog } from "../../../utils/devLog";
 import { useTheme } from '../../../context/ThemeContext';
 import {toggleBookmark} from '../../../features/bookmarks/store/bookmarkSlice';
 import { showToast } from '../../../services/ui/toastService';
-import { authService } from '../../../services/auth/authService';
+import { googleLoginService } from '../../../services/auth/googleLoginService';
+import { styles } from '../../../features/news/screens/Home';
 
-// TEMPORARILY COMMENTED OUT FOR BUILD - WILL RESTORE LATER
-// import { signInWithGoogle } from "../../services/auth/googleAuth";
 
 const toBookmarkArticle = (article: any) => ({
   _id: article._id,
@@ -167,59 +164,55 @@ const [showAuthModal, setShowAuthModal] = useState(false);
   };
 
 
+
   const handleGoogleLogin = useCallback(async () => {
-    log('Google login started');
+    setShowAuthModal(false);
   
     try {
-      const result = await signInWithGoogle();
+      const result = await googleLoginService.signIn();
   
-      if (!result?.user?.email) {
-        setShowAuthModal(false);
+      if (result === 'cancelled') {
         return;
       }
   
-      const response = await signInToBackendWithGoogle({
-        accessToken: result.accessToken,
-      });
+      const currentArticle = article;
   
-      devLog('Backend Google login:', response);
+      if (!currentArticle?._id) {
+        return;
+      }
   
-      if (response?.success) {
-        log('Backend authentication successful');
+      const alreadyBookmarked = store
+        .getState()
+        .bookmarks.items.some(
+          item => item._id === currentArticle._id,
+        );
   
-        await authService.establishSession(response);
-  
-        setShowAuthModal(false);
-  
-      // Save only if the article is not already bookmarked.
-const alreadyBookmarked = store
-.getState()
-.bookmarks.items.some(item => item._id === article._id);
-
-if (!alreadyBookmarked) {
-dispatch(toggleBookmark(toBookmarkArticle(article)));
-}
+      if (!alreadyBookmarked) {
+        dispatch(toggleBookmark(toBookmarkArticle(currentArticle)));
   
         logEvent('article_bookmarked', {
-          article_id: article._id,
-          category: article.category ?? 'unknown',
+          article_id: currentArticle._id,
+          category: currentArticle.category ?? 'unknown',
           origin: 'ReadMore',
         });
-  
-        log('User session established');
-  
-        showToast({
-          type: 'success',
-          title: 'Login successful',
-          message: 'Your article has been saved to bookmarks.'
-        })
-  
-
       }
+  
+      showToast({
+        type: 'success',
+        title: 'Login successful',
+        message: 'Your article has been saved to bookmarks.',
+      });
     } catch (error) {
-      console.error('Google login failed:', error);
+      devLog('Google login failed:', error);
+  
+      showToast({
+        type: 'error',
+        title: 'Login failed',
+        message: 'Unable to login with Google. Please try again.',
+      });
     }
   }, [article, dispatch]);
+  
 
   if (!id) {
     return (
@@ -305,11 +298,12 @@ dispatch(toggleBookmark(toBookmarkArticle(article)));
       >
 
         {!!article.imageUrl && (
-          <Image
-            source={{ uri: article.imageUrl }}
-            style={{ width: '100%', height: 240, marginTop: 12 }}
-            resizeMode="cover"
-          />
+      <View style={styles.imageContainer}>
+      <Image
+        source={{uri: article.imageUrl}}
+        style={styles.image}
+      />
+    </View>
         )}
 
         <View style={{ paddingHorizontal: 16, paddingTop: 14 }}>
@@ -444,3 +438,5 @@ dispatch(toggleBookmark(toBookmarkArticle(article)));
 };
 
 export default ReadMore;
+
+

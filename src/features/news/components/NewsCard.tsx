@@ -25,6 +25,7 @@ import FastImage from '@d11/react-native-fast-image';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { showToast } from '../../../services/ui/toastService';
 import { authService } from '../../../services/auth/authService';
+import { googleLoginService } from '../../../services/auth/googleLoginService';
 
 
 type ArticleLike = {
@@ -155,90 +156,76 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     });
   };
 
-  const handleGoogleLogin = useCallback(async () => {
-    logEvent('login_started', {
-      method: 'google',
-    });
-    log('Google login started');
-    try {
-      const result = await signInWithGoogle();
   
-      if (!result?.user?.email) {
-        setShowAuthModal(false);
-        return;
-      }
-      log('Google authentication successful');
-      const tokens = await GoogleSignin.getTokens();
-
-if (!tokens?.accessToken) {
-  throw new Error('Google access token was not available');
-}
-
-devLog('Google access token available:', true);
-
-const response = await signInToBackendWithGoogle({
-  accessToken: tokens.accessToken,
-});
-  
-      devLog('Backend Google login:', response);
-  
-     
-if (response?.success) {
-  await authService.establishSession(response);
-
-  logEvent('login_success', {
-    method: 'google',
-  });
-
-  log('Backend authentication successful');
-
-  setUserId(String(response.user.id));
+const handleGoogleLogin = useCallback(async () => {
   setShowAuthModal(false);
+  
+  logEvent('login_started', {method: 'google'});
+  log('Google login started');
 
-  if (pendingBookmark) {
-    const alreadyBookmarked = store
-      .getState()
-      .bookmarks.items.some(
-        item => item._id === pendingBookmark._id,
-      );
+  try {
+    const result = await googleLoginService.signIn();
 
-    if (!alreadyBookmarked) {
-      dispatch(toggleBookmark(pendingBookmark));
+    if (result === 'cancelled') {
+      return;
     }
 
-    logEvent('bookmark_added', {
-      article_id: pendingBookmark._id,
-      category: pendingBookmark.category,
-      origin: origin ?? 'Unknown',
-    });
+    const authenticatedUser = store.getState().auth.user;
 
-    setPendingBookmark(null);
+    if (authenticatedUser?.id != null) {
+      setUserId(String(authenticatedUser.id));
+    }
 
-    setTimeout(() => {
+    logEvent('login_success', {method: 'google'});
+    log('User session established');
+
+    setShowAuthModal(false);
+
+    if (pendingBookmark) {
+      const alreadyBookmarked = store
+        .getState()
+        .bookmarks.items.some(
+          item => item._id === pendingBookmark._id,
+        );
+
+      if (!alreadyBookmarked) {
+        dispatch(toggleBookmark(pendingBookmark));
+
+        logEvent('bookmark_added', {
+          article_id: pendingBookmark._id,
+          category: pendingBookmark.category,
+          origin: origin ?? 'Unknown',
+        });
+      }
+
+      setPendingBookmark(null);
+
       showToast({
         type: 'success',
         title: 'Login successful',
         message: 'Your article has been saved to bookmarks.',
       });
-    }, 300);
-  }
-
-  log('User session established');
-  devLog('Authentication successful');
-}
-
-    } catch (error) {
-      logEvent('login_failed', {
-        method: 'google',
-      });
-      setShowAuthModal(false)
+    } else {
       showToast({
-        type: 'error',
-        title: "Something Went Wrong, Please try again",
-      })
-      console.error('Google login failed:', error);
+        type: 'success',
+        title: 'Login successful',
+        message: 'You are now signed in.',
+      });
     }
-  }, [dispatch, pendingBookmark, origin]);
+  } catch (error) {
+    logEvent('login_failed', {method: 'google'});
+    setShowAuthModal(false);
+
+    showToast({
+      type: 'error',
+      title: 'Something went wrong',
+      message: 'Please try again.',
+    });
+
+    devLog('Google login failed:', error);
+  }
+}, [dispatch, pendingBookmark, origin]);
+
   
 
   return (
