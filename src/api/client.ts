@@ -63,38 +63,43 @@ requestStartTimes.set(config, Date.now());
     return config;
   });
 
-  api.interceptors.response.use(
-    
-    response => response,
-    error => {
-      if (error?.name === 'NETWORK_UNAVAILABLE') {
-        devLog('Request skipped: device is offline');
-        return Promise.reject(error);
+  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+const MAX_RETRIES = 2;
+
+api.interceptors.response.use(
+  response => response,
+  async error => {
+    const config = error?.config as any;
+    const status = error?.response?.status;
+
+    const retryable =
+      config &&
+      config.method === 'get' &&
+      error?.name !== 'NETWORK_UNAVAILABLE' &&
+      (!error.response || [502, 503, 504].includes(status));
+
+    if (retryable) {
+      config.__retryCount = (config.__retryCount ?? 0) + 1;
+      if (config.__retryCount <= MAX_RETRIES) {
+        await sleep(1000 * 2 ** (config.__retryCount - 1)); // 1s, 2s
+        return api(config);
       }
-  
-const startedAt = error?.config
-? requestStartTimes.get(error.config)
-: undefined;
+    }
 
-devLog('API request duration (ms):',
-startedAt ? Date.now() - startedAt : 'unknown',
+    devLog('========== API ERROR ==========');
+    devLog('message:', error?.message);
+    devLog('code:', error?.code);
+    devLog('url:', error?.config?.url);
+    devLog('baseURL:', error?.config?.baseURL);
+    devLog('method:', error?.config?.method);
+    devLog('timeout:', error?.config?.timeout);
+    devLog('status:', error?.response?.status);
+    devLog('response:', error?.response?.data);
+    devLog('request:', error?.request);
+    devLog('================================');
+    return Promise.reject(error);
+  },
 );
-
-      devLog('========== API ERROR ==========');
-      devLog('message:', error?.message);
-      devLog('code:', error?.code);
-      devLog('url:', error?.config?.url);
-      devLog('baseURL:', error?.config?.baseURL);
-      devLog('method:', error?.config?.method);
-      devLog('timeout:', error?.config?.timeout);
-      devLog('status:', error?.response?.status);
-      devLog('response:', error?.response?.data);
-      devLog('request:', error?.request);
-      devLog('================================');
-  
-      return Promise.reject(error);
-    },
-  );
 
 
 
