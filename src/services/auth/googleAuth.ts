@@ -12,6 +12,7 @@ export const configureGoogleSignIn = () => {
   });
 };
 
+
 export const signInWithGoogle = async () => {
   try {
     await GoogleSignin.hasPlayServices({
@@ -20,19 +21,26 @@ export const signInWithGoogle = async () => {
 
     const userInfo = await GoogleSignin.signIn();
 
-    devLog('Google User:', userInfo);
+    // Google account chooser was dismissed or sign-in was cancelled.
+    if (userInfo.type !== 'success') {
+      devLog('Google Sign-In cancelled by user');
+      return null;
+    }
+
+    const user = userInfo.data.user;
+
+    if (!user?.email) {
+      throw new Error('Google Sign-In did not return a user email.');
+    }
 
     const tokens = await GoogleSignin.getTokens();
 
     if (!tokens?.accessToken) {
-      devLog('Google Sign-In succeeded but no access token was returned');
-      return null;
+      throw new Error('Google access token was not returned.');
     }
-    
-    devLog('Google OAuth access token received');
-    
+
     return {
-      user: userInfo.data?.user,
+      user,
       accessToken: tokens.accessToken,
     };
   } catch (error: any) {
@@ -45,6 +53,7 @@ export const signInWithGoogle = async () => {
     throw error;
   }
 };
+
 
 
 export const googleLogout = async () => {
