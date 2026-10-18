@@ -6,7 +6,11 @@ const url = "/news?category=all"
 
 
 export const getNews = async (page = 1) =>{
-      const res = await api.get(`/news?page=${page}`);
+      const res = await api.get('/news', {
+        params: {
+          page,
+        },
+      });
       return res.data;   // returns { articles: [], currentPage, totalPages }
     };
     

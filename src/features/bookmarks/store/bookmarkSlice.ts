@@ -1,4 +1,5 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface BookmarkArticle {
   _id: string;
@@ -32,9 +33,13 @@ const bookmarkSlice = createSlice({
         state.items.push(action.payload);
       }
     },
+
+    clearBookmarks: state => {
+      state.items = [];
+    },
   },
 });
 
-export const {toggleBookmark} = bookmarkSlice.actions;
+export const { toggleBookmark, clearBookmarks } = bookmarkSlice.actions;
 
 export default bookmarkSlice.reducer;

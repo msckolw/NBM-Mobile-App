@@ -17,18 +17,27 @@ import { timeAgo } from '../../../utils/timeAgo';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { log } from '../../../services/monitoring/crashlytics';
-import { setAuth } from '../../../features/auth/store/authslice';
 import { signInWithGoogle } from '../../../services/auth/googleAuth';
 import { signInToBackendWithGoogle } from '../../../api/auth';
-import { AppDispatch, RootState } from '../../../store/index';
+import { AppDispatch, RootState, store } from '../../../store/index';
 import AuthRequiredModal from '../../../features/auth/components/AuthRequiredModal';
 import { devLog } from "../../../utils/devLog";
 import { useTheme } from '../../../context/ThemeContext';
 import {toggleBookmark} from '../../../features/bookmarks/store/bookmarkSlice';
 import { showToast } from '../../../services/ui/toastService';
+import { authService } from '../../../services/auth/authService';
 
 // TEMPORARILY COMMENTED OUT FOR BUILD - WILL RESTORE LATER
 // import { signInWithGoogle } from "../../services/auth/googleAuth";
+
+const toBookmarkArticle = (article: any) => ({
+  _id: article._id,
+  title: article.title ?? '',
+  summary: article.summary ?? '',
+  imageUrl: article.imageUrl ?? '',
+  category: article.category ?? '',
+  createdAt: article.createdAt ?? new Date().toISOString(),
+});
 
 const ReadMore = (props: any) => {
   const trackedRead = useRef(false);
@@ -39,9 +48,9 @@ const ReadMore = (props: any) => {
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
 
-const { token } = useSelector((state: RootState) => state.auth);
-
-const isAuthenticated = !!token;
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated,
+  );
 
 const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -135,7 +144,6 @@ const [showAuthModal, setShowAuthModal] = useState(false);
 
 
   const handleBookmark = () => {
-    devLog("dawda")
     if (!article?._id) {
       return;
     }
@@ -145,17 +153,17 @@ const [showAuthModal, setShowAuthModal] = useState(false);
       return;
     }
   
-    // toggleBookmark(article);
-    dispatch(toggleBookmark(article));
+    if (bookmarked) {
+      dispatch(toggleBookmark(toBookmarkArticle(article)));
+    } else {
+      dispatch(toggleBookmark(toBookmarkArticle(article)));
+    }
   
-    logEvent(
-      bookmarked ? 'article_unbookmarked' : 'article_bookmarked',
-      {
-        article_id: article._id,
-        category: article.category ?? 'unknown',
-        origin: 'ReadMore',
-      },
-    );
+    logEvent(bookmarked ? 'article_unbookmarked' : 'article_bookmarked', {
+      article_id: article._id,
+      category: article.category ?? 'unknown',
+      origin: 'ReadMore',
+    });
   };
 
 
@@ -179,18 +187,18 @@ const [showAuthModal, setShowAuthModal] = useState(false);
       if (response?.success) {
         log('Backend authentication successful');
   
-        dispatch(
-          setAuth({
-            token: response.token,
-            user: response.user,
-          }),
-        );
+        await authService.establishSession(response);
   
         setShowAuthModal(false);
   
-        // Save the article after successful authentication
-        // toggleBookmark(article);
-        dispatch(toggleBookmark(article));
+      // Save only if the article is not already bookmarked.
+const alreadyBookmarked = store
+.getState()
+.bookmarks.items.some(item => item._id === article._id);
+
+if (!alreadyBookmarked) {
+dispatch(toggleBookmark(toBookmarkArticle(article)));
+}
   
         logEvent('article_bookmarked', {
           article_id: article._id,

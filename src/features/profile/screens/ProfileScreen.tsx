@@ -16,13 +16,14 @@ import { devLog } from "../../../utils/devLog";
 import { useTheme } from '../../../context/ThemeContext';
 import { showToast } from '../../../services/ui/toastService';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
+import { authService } from '../../../services/auth/authService';
 
 
 
 
 const Profile = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, token } = useSelector(
+  const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth,
   );
   
@@ -64,12 +65,7 @@ const Profile = () => {
   
         log('Backend authentication successful');
   
-        dispatch(
-          setAuth({
-            token: response.token,
-            user: response.user,
-          }),
-        );
+        await authService.establishSession(response);
   
         setUserId(String(response.user.id));
         showToast({
@@ -101,17 +97,29 @@ const Profile = () => {
     setShowLogoutModal(true);
   };
 
+
   const handleLogout = async () => {
-    await googleLogout();
+    try {
+      await googleLogout();
   
-    dispatch(logout());
-    showToast({
-      type: 'success',
-      title: 'Logged out',
-      message: 'You have been successfully logged out.'
-    })
-    
+      await authService.clearSession();
+  
+      showToast({
+        type: 'success',
+        title: 'Logged out',
+        message: 'You have been successfully logged out.',
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+  
+      showToast({
+        type: 'error',
+        title: 'Logout failed',
+        message: 'Please try again.',
+      });
+    }
   };
+  
 
 
 
@@ -165,7 +173,7 @@ const Profile = () => {
 
    
 
-      {token ? (
+      {isAuthenticated ? (
   <TouchableOpacity
     onPress={confirmLogout}
     style={{
