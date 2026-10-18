@@ -10,7 +10,6 @@ export const googleLoginService = {
   async signIn(): Promise<GoogleLoginResult> {
     const result = await signInWithGoogle();
 
-    // Cancellation is a normal user action, not an authentication failure.
     if (!result) {
       return 'cancelled';
     }
@@ -25,7 +24,13 @@ export const googleLoginService = {
       accessToken: result.accessToken,
     });
 
-    await authService.establishSession(response);
+    await authService.establishSession({
+      ...response,
+      user: {
+        ...response.user,
+        photo: result.user.photo ?? null,
+      },
+    });
 
     devLog('Google authentication successful');
 

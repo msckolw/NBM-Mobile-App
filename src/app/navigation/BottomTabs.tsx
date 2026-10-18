@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Pressable, View} from 'react-native';
+import {Image, Pressable, View} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -13,6 +13,8 @@ import Donation from '../../features/donation/screens/DonationScreen';
 import AppHeader from '../../components/common/header';
 import {devLog} from '../../utils/devLog';
 import {useTheme} from '../../context/ThemeContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/index';
 
 const Tab = createBottomTabNavigator();
 
@@ -28,6 +30,10 @@ export default function AppScreens() {
   const insets = useSafeAreaInsets();
   const {theme} = useTheme();
   const isDark = theme === 'dark';
+
+  const photo = useSelector(
+    (state: RootState) => state.auth.user?.photo,
+  );
 
   useEffect(() => {
     devLog(
@@ -79,11 +85,24 @@ export default function AppScreens() {
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
-                    <Ionicons
-                      name="person-circle-outline"
-                      size={25}
-                      color={isDark ? '#FFFFFF' : '#171717'}
-                    />
+               {photo ? (
+  <Image
+    source={{uri: photo}}
+    style={{
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+    }}
+    resizeMode="cover"
+    accessibilityLabel="Google profile photo"
+  />
+) : (
+  <Ionicons
+    name="person-circle-outline"
+    size={25}
+    color={isDark ? '#FFFFFF' : '#171717'}
+  />
+)}
                   </Pressable>
                 </View>
               ) : undefined
