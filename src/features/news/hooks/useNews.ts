@@ -100,7 +100,6 @@ const useNews = (selectedCategory = 'All') => {
             });
             
             return;
-            return;
           } catch (requestError: any) {
             if (currentRequestId !== requestId.current) {
               return;

@@ -2130,6 +2130,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNKeychain (10.0.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-bridging
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNReactNativeHapticFeedback (3.0.0):
     - hermes-engine
     - RCTRequired
@@ -2508,6 +2530,7 @@ DEPENDENCIES:
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
+  - RNKeychain (from `../node_modules/react-native-keychain`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -2762,6 +2785,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gesture-handler"
   RNGoogleSignin:
     :path: "../node_modules/@react-native-google-signin/google-signin"
+  RNKeychain:
+    :path: "../node_modules/react-native-keychain"
   RNReactNativeHapticFeedback:
     :path: "../node_modules/react-native-haptic-feedback"
   RNReanimated:
@@ -2916,6 +2941,7 @@ SPEC CHECKSUMS:
   RNFBCrashlytics: 915941f260539b068ee881ca95be2c053e9d87c1
   RNGestureHandler: da48be88e9cc63a20f25d6b715e6acc93992c2dd
   RNGoogleSignin: 192bfa9ae0873538da6f41ffd43788c1be336426
+  RNKeychain: c21223f99385f30e3353355f1a130c150f23c96d
   RNReactNativeHapticFeedback: a2e36298f8e446b677488539e247deaa91d51103
   RNReanimated: 66ea54c88797982b302e18c848becea024329ba0
   RNScreens: cdfdbb0050779d8a879038774be539b584204730

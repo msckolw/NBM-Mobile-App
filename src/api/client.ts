@@ -2,6 +2,7 @@ import axios from 'axios';
 import { store } from '../store';
 import { devLog } from "../utils/devLog";
 import {getCurrentNetworkInfo, getNetworkInfo, initializeNetworkMonitoring } from '../services/network/networkInfo';
+import { tokenService } from '../services/auth/tokenService';
 
 
 const baseURL = 'https://nobiasmedia.onrender.com/api';
@@ -28,8 +29,8 @@ const api = axios.create({
     }
   
   
-    const token = store.getState().auth.token;
-  
+    const token = tokenService.getAccessToken();
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -26,6 +26,7 @@ import { devLog } from "../../../utils/devLog";
 import { useTheme } from '../../../context/ThemeContext';
 import {toggleBookmark} from '../../../features/bookmarks/store/bookmarkSlice';
 import { showToast } from '../../../services/ui/toastService';
+import { authService } from '../../../services/auth/authService';
 
 // TEMPORARILY COMMENTED OUT FOR BUILD - WILL RESTORE LATER
 // import { signInWithGoogle } from "../../services/auth/googleAuth";
@@ -179,12 +180,7 @@ const [showAuthModal, setShowAuthModal] = useState(false);
       if (response?.success) {
         log('Backend authentication successful');
   
-        dispatch(
-          setAuth({
-            token: response.token,
-            user: response.user,
-          }),
-        );
+        await authService.establishSession(response);
   
         setShowAuthModal(false);
   

@@ -24,6 +24,7 @@ import {toggleBookmark} from '../../bookmarks/store/bookmarkSlice';
 import FastImage from '@d11/react-native-fast-image';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { showToast } from '../../../services/ui/toastService';
+import { authService } from '../../../services/auth/authService';
 
 
 type ArticleLike = {
@@ -65,7 +66,9 @@ const  NewsCard = ({
 }: NewsCardProps) =>{
   const dispatch = useDispatch<AppDispatch>();
   
-  const { user, token } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth,
+  );
   const [pendingBookmark, setPendingBookmark] =
   useState<BookmarkArticle | null>(null);
 
@@ -74,7 +77,7 @@ const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
 
   const isDark = theme === 'dark';
-  const isAuthenticated = !!token;
+ 
   const isReadMore = origin === 'ReadMore';
   const useThisArticle: ArticleLike | undefined = isReadMore
     ? article
@@ -179,48 +182,51 @@ const response = await signInToBackendWithGoogle({
   
       devLog('Backend Google login:', response);
   
-      if (response?.success) {
-        logEvent('login_success', {
-          method: 'google',
-        });
-        log('Backend authentication successful');
-        dispatch(
-          setAuth({
-            token: response.token,
-            user: response.user,
-          }),
-        );
-        setUserId(String(response.user.id));
-        setShowAuthModal(false);
-  
-        if (pendingBookmark) {
-          // toggleBookmark(pendingBookmark);
-          const alreadyBookmarked = store.getState().bookmarks.items.some(
-            item => item._id === pendingBookmark._id,
-          );
-          
-          if (!alreadyBookmarked) {
-            dispatch(toggleBookmark(pendingBookmark));
-          }
+     
+if (response?.success) {
+  await authService.establishSession(response);
 
-  logEvent('bookmark_added', {
-    article_id: pendingBookmark._id,
-    category: pendingBookmark.category,
-    origin: origin ?? 'Unknown',
+  logEvent('login_success', {
+    method: 'google',
   });
-          setPendingBookmark(null);
-  
-          setTimeout(() => {
-            showToast({
-              type: 'success',
-              title: 'Login successful',
-              message: 'Your article has been saved to bookmarks.'
-            })
-          }, 300);
-        }
-        log('User session established');
-        devLog('Authentication successful');
-      }
+
+  log('Backend authentication successful');
+
+  setUserId(String(response.user.id));
+  setShowAuthModal(false);
+
+  if (pendingBookmark) {
+    const alreadyBookmarked = store
+      .getState()
+      .bookmarks.items.some(
+        item => item._id === pendingBookmark._id,
+      );
+
+    if (!alreadyBookmarked) {
+      dispatch(toggleBookmark(pendingBookmark));
+    }
+
+    logEvent('bookmark_added', {
+      article_id: pendingBookmark._id,
+      category: pendingBookmark.category,
+      origin: origin ?? 'Unknown',
+    });
+
+    setPendingBookmark(null);
+
+    setTimeout(() => {
+      showToast({
+        type: 'success',
+        title: 'Login successful',
+        message: 'Your article has been saved to bookmarks.',
+      });
+    }, 300);
+  }
+
+  log('User session established');
+  devLog('Authentication successful');
+}
+
     } catch (error) {
       logEvent('login_failed', {
         method: 'google',

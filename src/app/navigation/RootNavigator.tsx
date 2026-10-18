@@ -17,7 +17,9 @@ export default function RootNavigator() {
     }ms`,
   );
     
-    const token = useAppSelector((state) => state.auth.token);
+    const isAuthenticated = useAppSelector(
+      (state) => state.auth.isAuthenticated,
+    );
     const routeNameRef = useRef<string | undefined>(undefined);
 
 
@@ -55,7 +57,7 @@ export default function RootNavigator() {
         }
       }}
     >
-        {/* {token ? <AppStack /> : <AuthStack />} */}
+        {/* {isAuthenticated ? <AppStack /> : <AuthStack />} */}
       <AppStack />
     </NavigationContainer>
   );
