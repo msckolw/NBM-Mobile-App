@@ -10,15 +10,13 @@ export type NetworkInfo = {
 };
 
 let currentNetworkInfo: NetworkInfo = {
-  isConnected: true,
+  isConnected: false,
   isInternetReachable: null,
   type: 'unknown',
 };
 
 let initializationPromise: Promise<NetworkInfo> | null = null;
 let unsubscribe: (() => void) | null = null;
-let monitoringStarted = false;
-
 
 const mapNetworkState = (state: NetInfoState): NetworkInfo => ({
   isConnected: state.isConnected ?? false,
@@ -32,21 +30,31 @@ export const getNetworkInfo = async (): Promise<NetworkInfo> => {
   return currentNetworkInfo;
 };
 
-
 export const initializeNetworkMonitoring =
-  async (): Promise<NetworkInfo> => {
-    if (!monitoringStarted) {
-      unsubscribe = NetInfo.addEventListener(state => {
-        currentNetworkInfo = mapNetworkState(state);
-      });
+  (): Promise<NetworkInfo> => {
+    if (!initializationPromise) {
+      initializationPromise = (async () => {
+        unsubscribe = NetInfo.addEventListener(state => {
+          currentNetworkInfo = mapNetworkState(state);
+        });
 
-      monitoringStarted = true;
+        try {
+          return await getNetworkInfo();
+        } catch (error) {
+          // Permit a later attempt if initial lookup fails.
+          unsubscribe?.();
+          unsubscribe = null;
+          initializationPromise = null;
+          throw error;
+        }
+      })();
     }
 
-    return getNetworkInfo();
+    return initializationPromise;
   };
 
-export const getCurrentNetworkInfo = (): NetworkInfo => currentNetworkInfo;
+export const getCurrentNetworkInfo = (): NetworkInfo =>
+  currentNetworkInfo;
 
 export const subscribeToNetworkChanges = (
   callback: (network: NetworkInfo) => void,

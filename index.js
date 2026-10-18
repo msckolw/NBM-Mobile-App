@@ -13,5 +13,7 @@ import App from './src/app/App';
 import {name as appName} from './app.json';
 
 enableScreens(true);
-
+if (__DEV__) {
+    require("./ReactotronConfig");
+  }
 AppRegistry.registerComponent(appName, () => App);
