@@ -13,6 +13,7 @@ import { AnalyticsEvents } from '../../../services/monitoring/analyticsEvents';
 import { devLog } from "../../../utils/devLog";
 import FastImage from '@d11/react-native-fast-image';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
 
@@ -280,19 +281,38 @@ const Home = () => {
   maxToRenderPerBatch={10}
   windowSize={5}
   // removeClippedSubviews
+
   ListEmptyComponent={
     !loading && !refreshing && !error ? (
-      <View style={styles.emptyContainer}>
-        <Text style={[styles.emptyTitle, { color: theme.text }]}>
-          No news available
+      <View
+        style={styles.emptyContainer}
+        accessibilityRole="text"
+        accessibilityLabel="No news available in this category"
+      >
+        <Ionicons
+          name="newspaper-outline"
+          size={40}
+          color={theme.textSecondary}
+          accessibilityElementsHidden
+        />
+  
+        <Text style={[styles.emptyTitle, {color: theme.text}]}>
+          No stories yet
         </Text>
   
-        <Text style={[styles.emptyDescription, { color: theme.textSecondary }]}>
-          There are no articles in this category yet. Try another topic.
+        <Text
+          style={[
+            styles.emptyDescription,
+            {color: theme.textSecondary},
+          ]}
+        >
+          There are no articles in this category right now.
+          Explore another topic to discover more stories.
         </Text>
       </View>
     ) : null
   }
+  
 />
 <ConfirmationModal
   visible={showNetworkModal}
@@ -312,22 +332,37 @@ export default Home;
 
 
 export const styles = StyleSheet.create({
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 48,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  emptyDescription: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 20,
-  },
+ 
+emptyContainer: {
+  flexGrow: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingHorizontal: 32,
+  paddingVertical: 64,
+},
+
+emptyTitle: {
+  fontSize: 18,
+  fontWeight: '600',
+  textAlign: 'center',
+  marginTop: 16,
+  marginBottom: 8,
+},
+
+emptyDescription: {
+  fontSize: 14,
+  lineHeight: 21,
+  textAlign: 'center',
+  maxWidth: 300,
+},
+imageContainer: {
+  paddingHorizontal: 16,
+},
+image: {
+  width: '100%',
+  height: 220,
+  resizeMode: 'cover',
+  borderRadius: 12,
+},
+
 })

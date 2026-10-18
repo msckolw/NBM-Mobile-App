@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Share,
   Alert,
+  StyleSheet,
 } from 'react-native';
 import { useDetailedNews } from '../../news/hooks/DetailedNews';
 import { useNavigation } from '@react-navigation/native';
@@ -23,6 +24,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import {toggleBookmark} from '../../../features/bookmarks/store/bookmarkSlice';
 import { showToast } from '../../../services/ui/toastService';
 import { googleLoginService } from '../../../services/auth/googleLoginService';
+import { styles } from '../../../features/news/screens/Home';
 
 
 const toBookmarkArticle = (article: any) => ({
@@ -296,11 +298,12 @@ const [showAuthModal, setShowAuthModal] = useState(false);
       >
 
         {!!article.imageUrl && (
-          <Image
-            source={{ uri: article.imageUrl }}
-            style={{ width: '100%', height: 240, marginTop: 12 }}
-            resizeMode="cover"
-          />
+      <View style={styles.imageContainer}>
+      <Image
+        source={{uri: article.imageUrl}}
+        style={styles.image}
+      />
+    </View>
         )}
 
         <View style={{ paddingHorizontal: 16, paddingTop: 14 }}>
@@ -435,3 +438,5 @@ const [showAuthModal, setShowAuthModal] = useState(false);
 };
 
 export default ReadMore;
+
+
